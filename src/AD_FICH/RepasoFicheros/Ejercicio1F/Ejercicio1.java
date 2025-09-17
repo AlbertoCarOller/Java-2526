@@ -9,8 +9,12 @@ import java.util.List;
 
 public class Ejercicio1 {
     public static void main(String[] args) {
+        String ruta = "src/AD_FICH/RepasoFicheros/Ejercicio1F/inventario.txt";
+        if (args.length >= 1) {
+            ruta = args[0];
+        }
         try {
-            Path path = Path.of("src/AD_FICH/RepasoFicheros/Ejercicio1F/inventario.txt");
+            Path path = Path.of(ruta);
             mostrarInventario(path);
         } catch (Ejercicio1Exception e) {
             System.out.println(e.getMessage());
@@ -18,7 +22,7 @@ public class Ejercicio1 {
     }
 
     public static void mostrarInventario(Path inventario) throws Ejercicio1Exception {
-        try(BufferedReader br = new BufferedReader(new FileReader(inventario.toFile()))) {
+        try (BufferedReader br = new BufferedReader(new FileReader(inventario.toFile()))) {
             /*
             // Guardamos la línea
             String linea;
