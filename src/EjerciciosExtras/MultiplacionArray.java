@@ -6,16 +6,16 @@ public class MultiplacionArray {
     }
 
     public static int multiplicarAdyscente(int[] array) {
-        int max = 0;
+        int maximo = 0;
         for (int i = 0; i < array.length; i++) {
             int mult = 0;
             if ((i + 1) < array.length - 1) {
                 mult = array[i] * (array[i + 1]);
-                if (mult > max) {
-                    max = mult;
+                if (mult > maximo) {
+                    maximo = mult;
                 }
             }
         }
-        return max;
+        return maximo;
     }
 }
