@@ -1,0 +1,4 @@
+Nombre: Juan Pérez, Teléfono: +34-678-901-234.
+Contacto de emergencia: 123-456-789.
+El cliente Pedro no tiene telefono.
+Movil: 987 654 321
