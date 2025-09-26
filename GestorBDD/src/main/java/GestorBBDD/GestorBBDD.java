@@ -75,6 +75,7 @@ public class GestorBBDD {
                 rd.writeUTF(modelo);
                 escribirEspaciosEnBlanco(longitudModelo - modelo.getBytes().length, rd);
                 this.registrosEnBytes += 71; // Sumamos 71 que es lo que ocupa en bytes un registro
+                this.totalRegistros += 1; // Sumamos 1 al total de registros
             }
         }
     }
@@ -109,7 +110,7 @@ public class GestorBBDD {
             // Mientras no hayamos llegado al final seguimos leyendo
             while (rd.read(bufferMatricula) != -1) {
                 // Nos adelantamos 64 bytes hasta llegar a la siguiente matrícula (si no fuera el final)
-                rd.seek(64);
+                rd.skipBytes(64);
                 String matriculaS = new String(bufferMatricula, StandardCharsets.UTF_8);
                 if (matriculaS.equals(matricula)) {
                     return true;
