@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
-import java.io.FileNotFoundException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -13,14 +12,13 @@ import java.nio.file.StandardOpenOption;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
  * Esta clase simula un sistema de base de datos simple utilizando un único
  * fichero binario con registros de longitud fija.
  */
-public class GestorBBDD {
+public class GestorBBDDP {
     // --- Atributos ---
     private final String rutaFichero;
     private final Map<String,Integer> esquemaDefinicionCampos;
@@ -57,7 +55,7 @@ public class GestorBBDD {
      * @param nombreCampoClave El nombre del campo que servirá como clave primaria.
      * @throws IOException Si ocurre un error de entrada/salida.
      */
-    public GestorBBDD(String rutaFichero, Map<String, Integer> esquemaDefinicionCampos, String nombreCampoClave) throws IOException {
+    public GestorBBDDP(String rutaFichero, Map<String, Integer> esquemaDefinicionCampos, String nombreCampoClave) throws IOException {
         this.rutaFichero = rutaFichero;
         this.esquemaDefinicionCampos = esquemaDefinicionCampos;
         this.nombreCampoClave = nombreCampoClave;

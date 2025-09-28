@@ -13,7 +13,7 @@ public class Principal {
             esquema.put("NOMBRE", 32);
             esquema.put("CP", 5);
 
-            GestorBBDD gestorDB = new GestorBBDD("mi_base_de_datos.dat", esquema, "DNI");
+            GestorBBDDP gestorDB = new GestorBBDDP("mi_base_de_datos.dat", esquema, "DNI");
             System.out.println("Estado inicial. Registros: " + gestorDB.getTotalRegistros());
 
             // --- Inserciones ---
