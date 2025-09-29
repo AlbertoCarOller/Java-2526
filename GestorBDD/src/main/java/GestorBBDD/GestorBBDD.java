@@ -184,7 +184,7 @@ public class GestorBBDD {
      * @throws IOException
      * @throws GestorBBDDException
      */
-    public void borrarRegistro(String matricula) throws IOException, GestorBBDDException {
+    public void borrarRegistroMatricula(String matricula) throws IOException, GestorBBDDException {
         // Comprobamos si la matrícula existe
         if (!existe(matricula)) {
             throw new GestorBBDDException("La matrícula a borrar no está registrada");
@@ -267,7 +267,7 @@ public class GestorBBDD {
      * @throws GestorBBDDException
      * @throws IOException
      */
-    public void modificarRegistro(int posicion, String marca, String modelo) throws GestorBBDDException, IOException {
+    public void modificarRegistro(long posicion, String marca, String modelo) throws GestorBBDDException, IOException {
         if (posicion < 0 || posicion > totalRegistros) {
             throw new GestorBBDDException("La posición no es válida");
         }
@@ -279,12 +279,37 @@ public class GestorBBDD {
             // Obtenemos una lista de los registros
             ArrayList<String> listaRegistros = pasarRegistrosALista(leer);
             // Obtenemos la matrícula
-            String matriculaOriginal = listaRegistros.get(posicion).substring(0, longitudMatricula);
+            String matriculaOriginal = listaRegistros.get((int) posicion).substring(0, longitudMatricula);
             // Creamos el registro modificado
             String registroNuevo = matriculaOriginal.concat(String.format("%1$-" + longitudMarca + "s", marca))
                     .concat(String.format("%1$-" + longitudModelo + "s", modelo));
             // Reemplazamos el registro antiguo por el nuevo
-            listaRegistros.set(posicion, registroNuevo);
+            listaRegistros.set((int) posicion, registroNuevo);
+            // Escribimos los registros actualizados en el fichero temporal
+            escribirRegistros(listaRegistros, escribir, true);
+        }
+        intercambioFicheros();
+    }
+
+    /**
+     * Esta función va a eliminar el registro por la posición indicada
+     *
+     * @param posicion la posición del registro a borrar
+     * @throws GestorBBDDException
+     * @throws IOException
+     */
+    public void borrarRegistroPorPosicion(long posicion) throws GestorBBDDException, IOException {
+        if (posicion < 0 || posicion > totalRegistros) {
+            throw new GestorBBDDException("La posición no es válida");
+        }
+        Path bbddNueva = new File(this.ficheroTemporal).toPath();
+        Files.createFile(bbddNueva);
+        try (RandomAccessFile leer = new RandomAccessFile(this.rutaFicheroDat, "r");
+             RandomAccessFile escribir = new RandomAccessFile(this.ficheroTemporal, "rw")) {
+            // Obtenemos una lista de los registros
+            ArrayList<String> listaRegistros = pasarRegistrosALista(leer);
+            // Eliminamos el registro en la posición indicada por el usuario
+            listaRegistros.remove((int) posicion);
             // Escribimos los registros actualizados en el fichero temporal
             escribirRegistros(listaRegistros, escribir, true);
         }
