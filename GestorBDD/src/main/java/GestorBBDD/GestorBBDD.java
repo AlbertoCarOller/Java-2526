@@ -200,7 +200,7 @@ public class GestorBBDD {
             // Llamamos a función auxiliar para obtener la lista
             ArrayList<String> registros = pasarRegistrosALista(leerRegistros);
             registros.remove((int) posicion);
-            escribirRegistros(registros, escribirRegistros, true);
+            escribirRegistros(registros, escribirRegistros, 0);
         }
         intercambioFicheros();
         this.totalRegistros -= 1;
@@ -240,13 +240,9 @@ public class GestorBBDD {
      * @throws IOException
      * @throws RuntimeException
      */
-    private void escribirRegistros(List<String> listaRegistros, RandomAccessFile escribirRegistros, boolean principio)
+    private void escribirRegistros(List<String> listaRegistros, RandomAccessFile escribirRegistros, long posicionInicial)
             throws IOException, RuntimeException {
-        if (principio) {
-            escribirRegistros.seek(0);
-        } else {
-            escribirRegistros.seek(this.registrosEnBytes);
-        }
+        escribirRegistros.seek(posicionInicial);
         // Escribimos en el nuevo fichero
         listaRegistros.forEach(r -> {
             try {
@@ -284,7 +280,7 @@ public class GestorBBDD {
             // Reemplazamos el registro antiguo por el nuevo
             listaRegistros.set((int) posicion, registroNuevo);
             // Escribimos los registros actualizados en el fichero temporal
-            escribirRegistros(listaRegistros, escribir, true);
+            escribirRegistros(listaRegistros, escribir, 0);
         }
         intercambioFicheros();
     }
@@ -307,7 +303,7 @@ public class GestorBBDD {
             // Eliminamos el registro en la posición indicada por el usuario
             listaRegistros.remove((int) posicion);
             // Escribimos los registros actualizados en el fichero temporal
-            escribirRegistros(listaRegistros, escribir, true);
+            escribirRegistros(listaRegistros, escribir, 0);
         }
         intercambioFicheros();
         this.totalRegistros -= 1;
@@ -333,29 +329,45 @@ public class GestorBBDD {
             // Ordenamos la lista alfabéticamente de manera descendente
             ArrayList<String> listaRegistrosOrdenada = new ArrayList<>(listaRegistros.stream().sorted().toList().reversed());
             // Escribimos los registros en el fichero temporal
-            escribirRegistros(listaRegistrosOrdenada, escribir, true);
+            escribirRegistros(listaRegistrosOrdenada, escribir, 0);
         }
         intercambioFicheros();
     }
 
     /**
      * Esta función carga el contenido del CSV al fichero que
-     * simula la bbdd
+     * simula la bbdd, insertará los registros donde le diga
+     * el usuario desplazando así los registros de la bbdd
      *
+     * @param posicion la posición donde se va a insertar el CSV
      * @throws GestorBBDDException
      * @throws IOException
      */
-    public void cargarCSV() throws GestorBBDDException, IOException {
+    public void cargarCSV(long posicion) throws GestorBBDDException, IOException {
+        validarPosicion(posicion);
         File csv = new File(this.rutaCSV);
         if (!csv.exists() || csv.length() == 0) {
             throw new GestorBBDDException("No se ha encontrado el CSV");
         }
         try (BufferedReader leer = new BufferedReader(new FileReader(this.rutaCSV));
              RandomAccessFile escribir = new RandomAccessFile(this.rutaFicheroDat, "rw")) {
+            // Almacenamos los registros posteriores
+            ArrayList<byte[]> registrosAlmacenados = almacenarRegistrosPosteriores(posicion, escribir);
             // Obtenemos una lista con los registros formateados del CSV
             ArrayList<String> registrosFormateadosCSV = pasarCSVALista(leer);
             // Escribimos en la base de datos
-            escribirRegistros(registrosFormateadosCSV, escribir, false);
+            escribirRegistros(registrosFormateadosCSV, escribir, (posicion * 71));
+            // Escribimos los registros almacenados
+            registrosAlmacenados.forEach(c -> {
+                try {
+                    escribir.write(c);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+            // Actualizamos las varibles
+            this.totalRegistros += registrosFormateadosCSV.size();
+            this.registrosEnBytes += (71L * registrosAlmacenados.size());
         }
     }
 

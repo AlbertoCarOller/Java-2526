@@ -103,7 +103,11 @@ public class Principal {
                 // Ordenar por matrícula
                 case 4 -> gestorBBDD.ordenarPorMatricula();
                 // Cargar en CSV
-                case 5 -> gestorBBDD.cargarCSV();
+                case 5 -> {
+                    System.out.println("Elija la posicion:");
+                    long posicionL = comprobarPosicionLong(sc.nextLine());
+                    gestorBBDD.cargarCSV(posicionL);
+                }
                 // Salir
                 case 6 -> System.out.println("Hasta pronto");
                 // Opción inválida
