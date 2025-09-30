@@ -24,6 +24,14 @@ public class Principal {
         }
     }
 
+    /**
+     * Esta función básicamente es el menú, permite al usuario
+     * elegir entre todas las opciones disponibles
+     *
+     * @param gestorBBDD el gestor de la bbdd
+     * @throws GestorBBDDException
+     * @throws IOException
+     */
     public static void menuPrincipal(GestorBBDD gestorBBDD) throws GestorBBDDException, IOException {
         int opcion;
         do {

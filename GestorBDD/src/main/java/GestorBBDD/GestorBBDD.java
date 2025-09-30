@@ -340,6 +340,12 @@ public class GestorBBDD {
         intercambioFicheros();
     }
 
+    /**
+     * Esta función carga el contenido del CSV al fichero que
+     * simula la bbdd
+     * @throws GestorBBDDException
+     * @throws IOException
+     */
     public void cargarCSV() throws GestorBBDDException, IOException {
         File csv = new File(this.rutaCSV);
         if (!csv.exists() || csv.length() == 0) {
