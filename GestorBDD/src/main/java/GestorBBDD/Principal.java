@@ -36,7 +36,7 @@ public class Principal {
         int opcion;
         do {
             // Mostramos por pantalla el menú
-            System.out.println("""
+            System.out.println("-----------Registros-----------\n" + mostrarRegistrosPosiciones(gestorBBDD) + "\n" + """
                     -----------Menú principal-----------
                     1. Insertar registro
                     2. Borrar registro
@@ -58,7 +58,7 @@ public class Principal {
                     System.out.println("Introduce la marca:");
                     String marca = sc.nextLine();
                     // Solicitamos el modelo
-                    System.out.println("Introduce la modelo:");
+                    System.out.println("Introduce el modelo:");
                     String modelo = sc.nextLine();
                     // Solicitamos la posición hasta que sea válida
                     System.out.println("Introduce la posicion:");
@@ -92,11 +92,11 @@ public class Principal {
                 }
                 // Modificar registro
                 case 3 -> {
-                    System.out.println("Introduce la posicion:");
+                    System.out.println("Introduce la posición:");
                     long posicionL = comprobarPosicionLong(sc.nextLine());
                     System.out.println("Introduce la marca:");
                     String marca = sc.nextLine();
-                    System.out.println("Introduce la modelo:");
+                    System.out.println("Introduce el modelo:");
                     String modelo = sc.nextLine();
                     gestorBBDD.modificarRegistro(posicionL, marca, modelo);
                 }
@@ -121,9 +121,24 @@ public class Principal {
      */
     public static Long comprobarPosicionLong(String posicion) {
         while (!posicion.matches("^[0-9]+$")) {
-            System.out.println("Introduce la posicion:");
+            System.out.println("Introduce la posición:");
             posicion = sc.nextLine();
         }
         return Long.parseLong(posicion);
+    }
+
+    /**
+     * Esta función va a mostrar las posiciones
+     * donde hay registros, de la 0 a la x
+     *
+     * @param gestorBBDD el gestor de bbdd
+     * @return los registros disponibles en posiciones
+     */
+    public static String mostrarRegistrosPosiciones(GestorBBDD gestorBBDD) {
+        String RegistrosDisponibles = "Registros disponibles: No hay registros";
+        if (gestorBBDD.getTotalRegistros() > 0) {
+            RegistrosDisponibles = "Registros disponibles: (0-" + (gestorBBDD.getTotalRegistros() - 1) + ")";
+        }
+        return RegistrosDisponibles;
     }
 }
