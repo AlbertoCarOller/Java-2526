@@ -63,15 +63,13 @@ public class GestorBBDD {
      * @throws GestorBBDDException
      */
     public void insertarRegistro(String matricula, String marca, String modelo, long posicion) throws IOException, GestorBBDDException {
-        if (posicion > totalRegistros || posicion < 0) {
-            throw new GestorBBDDException("No se puede insertar en la posición " + posicion);
-        }
+        validarPosicion(posicion);
         if (matricula.isBlank() || matricula.getBytes().length > longitudMatricula
                 || marca.isBlank() || marca.getBytes().length > longitudMarca
                 || modelo.isBlank() || modelo.getBytes().length > longitudModelo) {
             throw new GestorBBDDException("Algún campo es inválido");
         }
-        if (existe(matricula)) {
+        if (existe(matricula) != -1) {
             throw new GestorBBDDException("No se permiten registros duplicados");
 
         } else {
@@ -144,14 +142,15 @@ public class GestorBBDD {
     }*/
 
     /**
-     * Esta función comprueba la existencia de la matrícula pasada en la base de datos,
-     * en caso de que exista true y en caso de que no false
+     * Esta función comprueba la existencia de la matrícula pasada en la base de datos
+     * y devuelve la posición
      *
      * @param matricula la matrícula a comprobar
-     * @return si existe o no ya en la base de datos
+     * @return la posición donde se encuentra la matrícula
      * @throws IOException
      */
-    private boolean existe(String matricula) throws IOException {
+    private long existe(String matricula) throws IOException {
+        long posicion = -1;
         // Creamos un RandomAccessFile para poder leer directamente los bytes que contiene la matrícula
         try (RandomAccessFile rd = new RandomAccessFile(this.rutaFicheroDat, "r")) {
             // En el buffer guardamos la matrícula leída
@@ -159,9 +158,11 @@ public class GestorBBDD {
             int veces = 0;
             // Mientras no hayamos llegado al final seguimos leyendo
             while ((rd.read(bufferMatricula)) != -1) {
+                posicion++;
                 veces++;
                 // Nos adelantamos al siguiente registro
                 rd.seek(veces * 71L);
+                // Sumamos los bytes leídos
 
                 /* Hay que codificarlo en ISO_8859_1 porque si lo hacemos en UTF-8 puede no escribir los bytes exactos
                  * porque .writeBytes() escribe con codificación ISO_8859_1 ->
@@ -169,11 +170,11 @@ public class GestorBBDD {
 
                 String matriculaS = new String(bufferMatricula, StandardCharsets.ISO_8859_1);
                 if (matriculaS.trim().equals(matricula)) {
-                    return true;
+                    return posicion;
                 }
             }
         }
-        return false;
+        return -1;
     }
 
     /**
@@ -185,8 +186,9 @@ public class GestorBBDD {
      * @throws GestorBBDDException
      */
     public void borrarRegistroMatricula(String matricula) throws IOException, GestorBBDDException {
-        // Comprobamos si la matrícula existe
-        if (!existe(matricula)) {
+        // Comprobamos si la matrícula existe y obtenemos su posición
+        long posicion = existe(matricula);
+        if (posicion == -1) {
             throw new GestorBBDDException("La matrícula a borrar no está registrada");
         }
         Path bbddNueva = new File(this.ficheroTemporal).toPath();
@@ -197,9 +199,7 @@ public class GestorBBDD {
             System.out.println("Comenzando el traspaso...");
             // Llamamos a función auxiliar para obtener la lista
             ArrayList<String> registros = pasarRegistrosALista(leerRegistros);
-            System.out.println("Registros encontrados");
-            registros.removeIf(r -> r.substring(0, longitudMatricula).trim().equals(matricula));
-            System.out.println("Registro eliminado");
+            registros.remove((int) posicion);
             escribirRegistros(registros, escribirRegistros, true);
         }
         intercambioFicheros();
@@ -268,9 +268,7 @@ public class GestorBBDD {
      * @throws IOException
      */
     public void modificarRegistro(long posicion, String marca, String modelo) throws GestorBBDDException, IOException {
-        if (posicion < 0 || posicion > totalRegistros) {
-            throw new GestorBBDDException("La posición no es válida");
-        }
+        validarPosicion(posicion);
         Path bbddNueva = new File(this.ficheroTemporal).toPath();
         Files.createFile(bbddNueva);
 
@@ -299,9 +297,7 @@ public class GestorBBDD {
      * @throws IOException
      */
     public void borrarRegistroPorPosicion(long posicion) throws GestorBBDDException, IOException {
-        if (posicion < 0 || posicion > totalRegistros) {
-            throw new GestorBBDDException("La posición no es válida");
-        }
+        validarPosicion(posicion);
         Path bbddNueva = new File(this.ficheroTemporal).toPath();
         Files.createFile(bbddNueva);
         try (RandomAccessFile leer = new RandomAccessFile(this.rutaFicheroDat, "r");
@@ -314,6 +310,8 @@ public class GestorBBDD {
             escribirRegistros(listaRegistros, escribir, true);
         }
         intercambioFicheros();
+        this.totalRegistros -= 1;
+        this.registrosEnBytes -= 71;
     }
 
     /**
@@ -343,6 +341,7 @@ public class GestorBBDD {
     /**
      * Esta función carga el contenido del CSV al fichero que
      * simula la bbdd
+     *
      * @throws GestorBBDDException
      * @throws IOException
      */
@@ -410,5 +409,18 @@ public class GestorBBDD {
         Files.move(new File(this.ficheroTemporal).toPath(), Path.of(this.rutaFicheroDat), StandardCopyOption.REPLACE_EXISTING);
         // Borramos la base de datos temporal una vez pasado el contenido
         Files.deleteIfExists(Path.of(this.ficheroTemporal));
+    }
+
+    /**
+     * Esta función va a validar la posición pasada por parámetros,
+     * comrpueba que no sea negativa ni mayor a los registros que hay
+     *
+     * @param posicion la posición a validar
+     * @throws GestorBBDDException
+     */
+    private void validarPosicion(long posicion) throws GestorBBDDException {
+        if (posicion < 0 || posicion > totalRegistros) {
+            throw new GestorBBDDException("La posición no es válida");
+        }
     }
 }
