@@ -150,6 +150,7 @@ public class GestorBBDD {
      * @throws IOException
      */
     private long existe(String matricula) throws IOException {
+        // -1 no existe, cualquier otro sí existe
         long posicion = -1;
         // Creamos un RandomAccessFile para poder leer directamente los bytes que contiene la matrícula
         try (RandomAccessFile rd = new RandomAccessFile(this.rutaFicheroDat, "r")) {
@@ -397,10 +398,14 @@ public class GestorBBDD {
                 }
                 String registroFormateado = "";
                 // Formateamos cada campo
-                registroFormateado = registroFormateado.concat(String.format("%1$-" + longitudMatricula + "s", campos[0].trim()));
-                registroFormateado = registroFormateado.concat(String.format("%1$-" + longitudMarca + "s", campos[1].trim()));
-                registroFormateado = registroFormateado.concat(String.format("%1$-" + longitudModelo + "s", campos[2].trim()));
-                listaRegistros.add(registroFormateado);
+                String matricula = String.format("%1$-" + longitudMatricula + "s", campos[0].trim());
+                // Si no existe la matrícula, la añadimos
+                if (existe(matricula) == -1) {
+                    registroFormateado = registroFormateado.concat(matricula);
+                    registroFormateado = registroFormateado.concat(String.format("%1$-" + longitudMarca + "s", campos[1].trim()));
+                    registroFormateado = registroFormateado.concat(String.format("%1$-" + longitudModelo + "s", campos[2].trim()));
+                    listaRegistros.add(registroFormateado);
+                }
             }
             contador++;
         }
