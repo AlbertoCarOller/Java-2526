@@ -62,7 +62,7 @@ public class GestorBBDD {
      * @throws IOException
      * @throws GestorBBDDException
      */
-    public void insertarRegistro(String matricula, String marca, String modelo, long posicion) throws IOException, GestorBBDDException {
+    public String insertarRegistro(String matricula, String marca, String modelo, long posicion) throws IOException, GestorBBDDException {
         validarPosicion(posicion);
         if (matricula.isBlank() || matricula.getBytes().length > longitudMatricula
                 || marca.isBlank() || marca.getBytes().length > longitudMarca
@@ -102,8 +102,7 @@ public class GestorBBDD {
                 });
             }
         }
-        System.out.println("Se ha insertado el registro " + matricula + "-" + marca + "-" + modelo + " en la posicion "
-                + posicion);
+        return "Se ha insertado el registro " + matricula + "-" + marca + "-" + modelo + " en la posicion " + posicion;
     }
 
     /**
@@ -188,7 +187,7 @@ public class GestorBBDD {
      * @throws IOException
      * @throws GestorBBDDException
      */
-    public void borrarRegistroMatricula(String matricula) throws IOException, GestorBBDDException {
+    public String borrarRegistroMatricula(String matricula) throws IOException, GestorBBDDException {
         // Comprobamos si la matrícula existe y obtenemos su posición
         long posicion = existe(matricula);
         if (posicion == -1) {
@@ -208,7 +207,7 @@ public class GestorBBDD {
         intercambioFicheros();
         this.totalRegistros -= 1;
         this.registrosEnBytes -= 71;
-        System.out.println("Se ha borrado el registro en la posición" + posicion);
+        return "Se ha borrado el registro en la posición" + posicion;
 
     }
 
@@ -267,7 +266,7 @@ public class GestorBBDD {
      * @throws GestorBBDDException
      * @throws IOException
      */
-    public void modificarRegistro(long posicion, String marca, String modelo) throws GestorBBDDException, IOException {
+    public String modificarRegistro(long posicion, String marca, String modelo) throws GestorBBDDException, IOException {
         validarPosicion(posicion);
         Path bbddNueva = new File(this.ficheroTemporal).toPath();
         Files.createFile(bbddNueva);
@@ -287,7 +286,7 @@ public class GestorBBDD {
             escribirRegistros(listaRegistros, escribir, 0);
         }
         intercambioFicheros();
-        System.out.println("Se ha modificado el registro " + posicion + " -> Marca y modelo actualizados");
+        return "Se ha modificado el registro " + posicion + " -> Marca y modelo actualizados";
     }
 
     /**
@@ -297,7 +296,7 @@ public class GestorBBDD {
      * @throws GestorBBDDException
      * @throws IOException
      */
-    public void borrarRegistroPorPosicion(long posicion) throws GestorBBDDException, IOException {
+    public String borrarRegistroPorPosicion(long posicion) throws GestorBBDDException, IOException {
         validarPosicion(posicion);
         Path bbddNueva = new File(this.ficheroTemporal).toPath();
         Files.createFile(bbddNueva);
@@ -313,7 +312,7 @@ public class GestorBBDD {
         intercambioFicheros();
         this.totalRegistros -= 1;
         this.registrosEnBytes -= 71;
-        System.out.println("Se ha borrado el registro en la posición" + posicion);
+        return "Se ha borrado el registro en la posición " + posicion;
     }
 
     /**
@@ -323,7 +322,7 @@ public class GestorBBDD {
      * @throws GestorBBDDException
      * @throws IOException
      */
-    public void ordenarPorMatricula() throws GestorBBDDException, IOException {
+    public String ordenarPorMatricula() throws GestorBBDDException, IOException {
         if (this.totalRegistros == 0) {
             throw new GestorBBDDException("No hay registros para ordenar");
         }
@@ -338,7 +337,7 @@ public class GestorBBDD {
             escribirRegistros(listaRegistrosOrdenada, escribir, 0);
         }
         intercambioFicheros();
-        System.out.println("Se han ordenado los registros por matrícula");
+        return "Se han ordenado los registros por matrícula";
     }
 
     /**
@@ -347,10 +346,11 @@ public class GestorBBDD {
      * el usuario desplazando así los registros de la bbdd
      *
      * @param posicion la posición donde se va a insertar el CSV
+     * @return
      * @throws GestorBBDDException
      * @throws IOException
      */
-    public void cargarCSV(long posicion) throws GestorBBDDException, IOException {
+    public String cargarCSV(long posicion) throws GestorBBDDException, IOException {
         validarPosicion(posicion);
         File csv = new File(this.rutaCSV);
         if (!csv.exists() || csv.length() == 0) {
@@ -375,7 +375,7 @@ public class GestorBBDD {
             // Actualizamos las varibles
             this.totalRegistros += registrosFormateadosCSV.size();
             this.registrosEnBytes += (71L * registrosFormateadosCSV.size());
-            System.out.println("Se han podido cargar " + registrosFormateadosCSV.size() + "registros");
+            return "Se han podido cargar " + registrosFormateadosCSV.size() + " registros";
         }
     }
 

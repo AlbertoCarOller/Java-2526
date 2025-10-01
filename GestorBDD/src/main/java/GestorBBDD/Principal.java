@@ -106,7 +106,11 @@ public class Principal {
                 case 5 -> {
                     System.out.println("Elija la posicion:");
                     long posicionL = comprobarPosicionLong(sc.nextLine());
-                    gestorBBDD.cargarCSV(posicionL);
+                    try {
+                        gestorBBDD.cargarCSV(posicionL);
+                    } catch (GestorBBDDException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
                 // Salir
                 case 6 -> System.out.println("Hasta pronto");
