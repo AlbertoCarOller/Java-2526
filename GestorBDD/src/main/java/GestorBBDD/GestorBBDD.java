@@ -1,11 +1,14 @@
 package GestorBBDD;
 
+import org.hibernate.internal.util.collections.CaseInsensitiveDictionary;
+
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -332,7 +335,10 @@ public class GestorBBDD {
             // Obtenemos la lista de los registros
             ArrayList<String> listaRegistros = pasarRegistrosALista(leer);
             // Ordenamos la lista alfabéticamente de manera descendente
-            ArrayList<String> listaRegistrosOrdenada = new ArrayList<>(listaRegistros.stream().sorted().toList().reversed());
+            ArrayList<String> listaRegistrosOrdenada = new ArrayList<>(listaRegistros.stream()
+                    /* String.CASE_INSENSITIVE_ORDER -> Ordena sin tener en cuenta las mayúsculas y minúsculas,
+                     porque devuelve un Comparator<String> */
+                    .sorted(String.CASE_INSENSITIVE_ORDER).toList().reversed());
             // Escribimos los registros en el fichero temporal
             escribirRegistros(listaRegistrosOrdenada, escribir, 0);
         }
