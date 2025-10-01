@@ -43,7 +43,8 @@ public class Principal {
                     3. Modificar registro
                     4. Ordenar por matrícula
                     5. Cargar CSV
-                    6. Salir
+                    6. Mostrar registros
+                    7. Salir
                     
                     -Elige opción:""");
             opcion = Integer.parseInt(sc.nextLine());
@@ -112,12 +113,14 @@ public class Principal {
                         throw new RuntimeException(e);
                     }
                 }
+                // Mostrar registros
+                case 6 -> System.out.println(gestorBBDD.mostrarRegistros());
                 // Salir
-                case 6 -> System.out.println("Hasta pronto");
+                case 7 -> System.out.println("Hasta pronto");
                 // Opción inválida
                 default -> System.out.println("Opción invalida");
             }
-        } while (opcion != 6);
+        } while (opcion != 7);
     }
 
     /**

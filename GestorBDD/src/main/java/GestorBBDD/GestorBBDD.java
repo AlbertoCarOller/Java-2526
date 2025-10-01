@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class GestorBBDD {
     private final int longitudMatricula = 7;
@@ -230,7 +231,6 @@ public class GestorBBDD {
             // Aádimos el registro como cadena a la lista
             listaRegistrosALista.add(new String(registroS, StandardCharsets.ISO_8859_1));
         }
-        System.out.println("Registros pasados");
         return listaRegistrosALista;
     }
 
@@ -445,6 +445,22 @@ public class GestorBBDD {
     private void validarPosicion(long posicion) throws GestorBBDDException {
         if (posicion < 0 || posicion > totalRegistros) {
             throw new GestorBBDDException("La posición no es válida");
+        }
+    }
+
+    /**
+     * Esta función va a formatear los registros dentro de la lista
+     * que contiene todos los registros de la base de datos
+     *
+     * @return los registros formateados para mostrar
+     */
+    public String mostrarRegistros() throws IOException {
+        try (RandomAccessFile leer = new RandomAccessFile(this.rutaFicheroDat, "r")) {
+            ArrayList<String> registros = pasarRegistrosALista(leer);
+            if (registros.isEmpty()) {
+                return "No hay registros";
+            }
+            return registros.stream().map(s -> "Registro: " + s).collect(Collectors.joining("\n"));
         }
     }
 }
