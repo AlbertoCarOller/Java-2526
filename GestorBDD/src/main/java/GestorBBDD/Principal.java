@@ -16,7 +16,7 @@ public class Principal {
                     "src\\main\\java\\GestorBBDD\\BBDD Coches.csv";
             // Creamos el gestor de bbdd con las rutas creadas anteriormente
             GestorBBDD gestorBBDD = new GestorBBDD(rutaFicheroDat, rutaCSV);
-            // Llamamos al menú principal
+            // Llamamos al menú principal de la bbdd
             menuPrincipal(gestorBBDD);
 
         } catch (IOException | GestorBBDDException | RuntimeException e) {

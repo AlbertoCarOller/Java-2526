@@ -450,7 +450,7 @@ public class GestorBBDD {
 
     /**
      * Esta función va a formatear los registros dentro de la lista
-     * que contiene todos los registros de la base de datos
+     * que contiene todos los registros de bbdd
      *
      * @return los registros formateados para mostrar
      */
