@@ -14,6 +14,13 @@ public class Ejercicio1 {
         }
     }
 
+    /**
+     * Esta función va a mostrar los ficheros y directorios dentro de un
+     * directorio
+     *
+     * @param ruta la ruta donde se encuentra el directorio
+     * @throws IOException
+     */
     public static void mostrarDrectorioDeEjecucion(String ruta) throws IOException {
         // Creamos un proceso
         ProcessBuilder pb = new ProcessBuilder("cmd.exe", "/C", "dir");
@@ -26,6 +33,11 @@ public class Ejercicio1 {
         System.out.println("Directorio por defecto del proceso: " + pb.directory());
     }
 
+    /**
+     * Esta función va a mostrar el entorno del proceso por consola
+     *
+     * @throws IOException
+     */
     public static void mostrarEntornoEjecucion() throws IOException {
         // Creamos un proceso
         ProcessBuilder pb = new ProcessBuilder("cmd.exe", "/C", "dir");
