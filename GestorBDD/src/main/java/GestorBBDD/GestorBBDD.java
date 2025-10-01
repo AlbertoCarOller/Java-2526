@@ -450,7 +450,7 @@ public class GestorBBDD {
 
     /**
      * Esta función va a formatear los registros dentro de la lista
-     * que contiene todos los registros de bbdd
+     * que contiene todos los registros de la bbdd
      *
      * @return los registros formateados para mostrar
      */
@@ -460,7 +460,10 @@ public class GestorBBDD {
             if (registros.isEmpty()) {
                 return "No hay registros";
             }
-            return registros.stream().map(s -> "Registro: " + s).collect(Collectors.joining("\n"));
+            return registros.stream().map(s -> "Registro: ".concat(s.substring(0, longitudMatricula).trim())
+                            .concat(" - ").concat(s.substring(longitudMatricula, longitudMarca).trim())
+                            .concat(" - ").concat(s.substring(longitudMarca, longitudModelo * 2).trim()))
+                    .collect(Collectors.joining("\n"));
         }
     }
 }

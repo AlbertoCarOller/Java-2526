@@ -26,7 +26,7 @@ public class Principal {
 
     /**
      * Esta función básicamente es el menú, permite al usuario
-     * elegir entre todas las opciones disponibles
+     * elegir entre las opciones disponibles
      *
      * @param gestorBBDD el gestor de la bbdd
      * @throws GestorBBDDException
