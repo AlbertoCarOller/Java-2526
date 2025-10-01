@@ -102,6 +102,8 @@ public class GestorBBDD {
                 });
             }
         }
+        System.out.println("Se ha insertado el registro " + matricula + "-" + marca + "-" + modelo + " en la posicion "
+                + posicion);
     }
 
     /**
@@ -206,6 +208,7 @@ public class GestorBBDD {
         intercambioFicheros();
         this.totalRegistros -= 1;
         this.registrosEnBytes -= 71;
+        System.out.println("Se ha borrado el registro en la posición" + posicion);
 
     }
 
@@ -284,6 +287,7 @@ public class GestorBBDD {
             escribirRegistros(listaRegistros, escribir, 0);
         }
         intercambioFicheros();
+        System.out.println("Se ha modificado el registro " + posicion + " -> Marca y modelo actualizados");
     }
 
     /**
@@ -309,6 +313,7 @@ public class GestorBBDD {
         intercambioFicheros();
         this.totalRegistros -= 1;
         this.registrosEnBytes -= 71;
+        System.out.println("Se ha borrado el registro en la posición" + posicion);
     }
 
     /**
@@ -333,6 +338,7 @@ public class GestorBBDD {
             escribirRegistros(listaRegistrosOrdenada, escribir, 0);
         }
         intercambioFicheros();
+        System.out.println("Se han ordenado los registros por matrícula");
     }
 
     /**
@@ -353,7 +359,7 @@ public class GestorBBDD {
         try (BufferedReader leer = new BufferedReader(new FileReader(this.rutaCSV));
              RandomAccessFile escribir = new RandomAccessFile(this.rutaFicheroDat, "rw")) {
             // Almacenamos los registros posteriores
-            ArrayList<byte[]> registrosAlmacenados = almacenarRegistrosPosteriores(posicion, escribir);
+            ArrayList<byte[]> registrosAlmacenados = almacenarRegistrosPosteriores(posicion * 71, escribir);
             // Obtenemos una lista con los registros formateados del CSV
             ArrayList<String> registrosFormateadosCSV = pasarCSVALista(leer);
             // Escribimos en la base de datos
@@ -368,7 +374,8 @@ public class GestorBBDD {
             });
             // Actualizamos las varibles
             this.totalRegistros += registrosFormateadosCSV.size();
-            this.registrosEnBytes += (71L * registrosAlmacenados.size());
+            this.registrosEnBytes += (71L * registrosFormateadosCSV.size());
+            System.out.println("Se han podido cargar " + registrosFormateadosCSV.size() + "registros");
         }
     }
 
@@ -399,8 +406,8 @@ public class GestorBBDD {
                 String registroFormateado = "";
                 // Formateamos cada campo
                 String matricula = String.format("%1$-" + longitudMatricula + "s", campos[0].trim());
-                // Si no existe la matrícula, la añadimos
-                if (existe(matricula) == -1) {
+                // Si no existe la matrícula, se añade
+                if (existe(matricula.trim()) == -1) {
                     registroFormateado = registroFormateado.concat(matricula);
                     registroFormateado = registroFormateado.concat(String.format("%1$-" + longitudMarca + "s", campos[1].trim()));
                     registroFormateado = registroFormateado.concat(String.format("%1$-" + longitudModelo + "s", campos[2].trim()));
@@ -409,7 +416,7 @@ public class GestorBBDD {
             }
             contador++;
         }
-        return listaRegistros;
+        return new ArrayList<>(listaRegistros.reversed());
     }
 
     /**
