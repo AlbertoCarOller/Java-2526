@@ -64,7 +64,7 @@ public class Principal {
                     System.out.println("Introduce la posicion:");
                     long posicionL = comprobarPosicionLong(sc.nextLine());
                     // Llamamos a la función
-                    gestorBBDD.insertarRegistro(matricula, marca, modelo, posicionL);
+                    System.out.println(gestorBBDD.insertarRegistro(matricula, marca, modelo, posicionL));
                 }
                 // Borrar registro
                 case 2 -> {
@@ -79,12 +79,12 @@ public class Principal {
                         case 1 -> {
                             System.out.println("Introduce la matrícula:");
                             String matricula = sc.nextLine();
-                            gestorBBDD.borrarRegistroMatricula(matricula);
+                            System.out.println(gestorBBDD.borrarRegistroMatricula(matricula));
                         }
                         // Borrar registro por posición
                         case 2 -> {
                             System.out.println("Introduce la posicion:");
-                            gestorBBDD.borrarRegistroPorPosicion(comprobarPosicionLong(sc.nextLine()));
+                            System.out.println(gestorBBDD.borrarRegistroPorPosicion(comprobarPosicionLong(sc.nextLine())));
                         }
                         // En caso de no elegir ninguna opción válida
                         default -> System.out.println("Opción inválida");
@@ -98,16 +98,16 @@ public class Principal {
                     String marca = sc.nextLine();
                     System.out.println("Introduce el modelo:");
                     String modelo = sc.nextLine();
-                    gestorBBDD.modificarRegistro(posicionL, marca, modelo);
+                    System.out.println(gestorBBDD.modificarRegistro(posicionL, marca, modelo));
                 }
                 // Ordenar por matrícula
-                case 4 -> gestorBBDD.ordenarPorMatricula();
+                case 4 -> System.out.println(gestorBBDD.ordenarPorMatricula());
                 // Cargar en CSV
                 case 5 -> {
                     System.out.println("Elija la posicion:");
                     long posicionL = comprobarPosicionLong(sc.nextLine());
                     try {
-                        gestorBBDD.cargarCSV(posicionL);
+                        System.out.println(gestorBBDD.cargarCSV(posicionL));
                     } catch (GestorBBDDException e) {
                         throw new RuntimeException(e);
                     }
