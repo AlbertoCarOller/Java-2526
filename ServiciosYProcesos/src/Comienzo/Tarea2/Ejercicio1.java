@@ -8,6 +8,7 @@ public class Ejercicio1 {
         try {
             mostrarDrectorioDeEjecucion("ServiciosYProcesos/src/Comienzo/Tarea2");
             mostrarDrectorioDeEjecucion("ServiciosYProcesos/src/Comienzo/Tarea1");
+            mostrarEntornoEjecucion();
         } catch (IOException e) {
             System.out.println("Error: " + e.getMessage());
         }
@@ -25,10 +26,14 @@ public class Ejercicio1 {
         System.out.println("Directorio por defecto del proceso: " + pb.directory());
     }
 
-    public static void mostrarEntornoEjecucion(String ruta) throws IOException {
+    public static void mostrarEntornoEjecucion() throws IOException {
         // Creamos un proceso
         ProcessBuilder pb = new ProcessBuilder("cmd.exe", "/C", "dir");
         pb.inheritIO();
-        // Creamos
+        /* Obtenemos los elementos del .environment() y los mostramos, este sirve para mostrar y configurar
+         con set y get el entorno para el proceso */
+        System.out.println();
+        pb.environment().forEach((key, value) -> System.out.println(key + ": " + value));
+        System.out.println();
     }
 }
