@@ -211,7 +211,7 @@ public class GestorBBDD {
         intercambioFicheros();
         this.totalRegistros -= 1;
         this.registrosEnBytes -= 71;
-        return "Se ha borrado el registro en la posición" + posicion;
+        return "Se ha borrado el registro en la posición " + posicion;
 
     }
 
