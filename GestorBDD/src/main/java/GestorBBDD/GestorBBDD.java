@@ -68,9 +68,7 @@ public class GestorBBDD {
      */
     public String insertarRegistro(String matricula, String marca, String modelo, long posicion) throws IOException, GestorBBDDException {
         validarPosicion(posicion);
-        if (matricula.isBlank() || matricula.getBytes().length > longitudMatricula
-                || marca.isBlank() || marca.getBytes().length > longitudMarca
-                || modelo.isBlank() || modelo.getBytes().length > longitudModelo) {
+        if (problemaCampos(matricula, marca, modelo)) {
             throw new GestorBBDDException("Algún campo es inválido");
         }
         if (existe(matricula) != -1) {
@@ -409,14 +407,14 @@ public class GestorBBDD {
                 if (campos.length != 3) {
                     throw new GestorBBDDException("Los registros no están bien formados");
                 }
-                String registroFormateado = "";
+                String registroFormateado;
                 // Formateamos cada campo
                 String matricula = String.format("%1$-" + longitudMatricula + "s", campos[0].trim());
+                String marca = (String.format("%1$-" + longitudMarca + "s", campos[1].trim()));
+                String modelo = String.format("%1$-" + longitudModelo + "s", campos[2].trim());
                 // Si no existe la matrícula, se añade
-                if (existe(matricula.trim()) == -1) {
-                    registroFormateado = registroFormateado.concat(matricula);
-                    registroFormateado = registroFormateado.concat(String.format("%1$-" + longitudMarca + "s", campos[1].trim()));
-                    registroFormateado = registroFormateado.concat(String.format("%1$-" + longitudModelo + "s", campos[2].trim()));
+                if (existe(matricula.trim()) == -1 && !problemaCampos(matricula.trim(), marca.trim(), modelo.trim())) {
+                    registroFormateado = matricula.concat(marca).concat(modelo);
                     listaRegistros.add(registroFormateado);
                 }
             }
@@ -471,5 +469,21 @@ public class GestorBBDD {
                             .concat(" - ").concat(s.substring(longitudMarca, longitudModelo * 2).trim()))
                     .collect(Collectors.joining("\n"));
         }
+    }
+
+    /**
+     * Esta función va a validar cada campo de un registro,
+     * devolverá true si hay problemas y false si no hay problemas
+     *
+     * @param matricula la matrícula del coche
+     * @param marca     la marca del coche
+     * @param modelo    el modelo del coche
+     * @return si hay error o no
+     * @throws GestorBBDDException
+     */
+    public boolean problemaCampos(String matricula, String marca, String modelo) {
+        return matricula.isBlank() || matricula.getBytes().length > longitudMatricula
+                || marca.isBlank() || marca.getBytes().length > longitudMarca
+                || modelo.isBlank() || modelo.getBytes().length > longitudModelo;
     }
 }
