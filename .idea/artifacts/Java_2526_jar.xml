@@ -3,7 +3,7 @@
     <output-path>$PROJECT_DIR$/out/artifacts/Java_2526_jar</output-path>
     <root id="archive" name="Java-2526.jar">
       <element id="module-output" name="Java-2526" />
-      <element id="module-output" name="BBDD" />
+      <element id="module-output" name="ACCD" />
       <element id="module-output" name="ServiciosYProcesos" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/glassfish/jaxb/txw2/4.0.5/txw2-4.0.5.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$MAVEN_REPOSITORY$/jakarta/xml/bind/jakarta.xml.bind-api/4.0.2/jakarta.xml.bind-api-4.0.2.jar" path-in-jar="/" />
