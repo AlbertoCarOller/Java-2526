@@ -16,12 +16,14 @@ public class GestorBBDD {
     private final int longitudMatricula = 7;
     private final int longitudMarca = 32;
     private final int longitudModelo = 32;
-    private final String rutaFicheroDat;
+    private final String rutaFicheroDat; // -> La ruta donde se encuentra la bbdd
     private long totalRegistros = 0;
-    private long registrosEnBytes = 0;
-    private final String rutaCSV;
+    private long registrosEnBytes = 0; // -> Los registros que hay en bytes
+    private final String rutaCSV; // -> La ruta donde se encuentra el CSV
     private final String ficheroTemporal = "C:\\Users\\Alberto.DESKTOP-O1GC77M\\Desktop\\Java\\Java-2526\\GestorBDD\\" +
-            "src\\main\\java\\GestorBBDD\\baseTemporal.dat";
+            "src\\main\\java\\GestorBBDD\\baseTemporal.dat"; /* -> La ruta del fichero temproral que almacena los cambios
+             realizados en el fichero bbdd original, al cual (temporal) posteriormente se le cambia el nombre por el
+              nombre de la ruta original */
 
     // Creamos el constructor
     public GestorBBDD(String rutaFicheroDat, String rutaCSV) throws IOException {
@@ -67,42 +69,48 @@ public class GestorBBDD {
      * @throws GestorBBDDException
      */
     public String insertarRegistro(String matricula, String marca, String modelo, long posicion) throws IOException, GestorBBDDException {
+        // Comprobamos que la posición sea correcta
         validarPosicion(posicion);
+        // Comprobamos que los campos sean válidos (tamaño, y que no estén en blanco)
         if (problemaCampos(matricula, marca, modelo)) {
             throw new GestorBBDDException("Algún campo es inválido");
         }
+        // Comprobamos que la matrícula no esté ya en la bbdd
         if (existe(matricula) != -1) {
             throw new GestorBBDDException("No se permiten registros duplicados");
 
-        } else {
-            long posicionEnBytes = posicion * (longitudMatricula + longitudMarca + longitudModelo);
-            try (RandomAccessFile rd = new RandomAccessFile(this.rutaFicheroDat, "rw")) {
-                List<byte[]> registrosPosteriores = almacenarRegistrosPosteriores(posicionEnBytes, rd);
-                // Nos posicionamos donde indica el usuario
-                rd.seek(posicionEnBytes);
-                /* Escribimos la matrícula formateada con .format(), el %1$- indica que quiere formatear
-                 * el primer argumento pasado (sin contar el formateo) y el '-' indica que se deberá de
-                 * colocar a la izquierda y a la derecha se rellenará hasta llegar a la longitud pasada
-                 * con espacios */
+            // En caso de que no exista la matrícula, insertamos
+        }
+        // Calculamos la posición en bytes para insertar
+        long posicionEnBytes = posicion * (longitudMatricula + longitudMarca + longitudModelo);
+        try (RandomAccessFile rd = new RandomAccessFile(this.rutaFicheroDat, "rw")) {
+                /* Desde 'posicionEnBytes' hasta el final del fichero guarda el contenido para insertarlo
+                 después de insertar el nuevo registro */
+            List<byte[]> registrosPosteriores = almacenarRegistrosPosteriores(posicionEnBytes, rd);
+            // Nos posicionamos donde indica el usuario
+            rd.seek(posicionEnBytes);
+            /* Escribimos la matrícula formateada con .format(), el %1$- indica que quiere formatear
+             * el primer argumento pasado (sin contar el formateo) y el '-' indica que se deberá de
+             * colocar a la izquierda y a la derecha se rellenará hasta llegar a la longitud pasada
+             * con espacios */
                 /* Las codificaciones deben estar en ISO_8859_1 para respetar 1 byte por caracter porque con UTF-8 los
                  caracteres especiales pueden ocupar 2 bytes */
-                rd.write(String.format("%1$-" + longitudMatricula + "s", matricula).getBytes(StandardCharsets.ISO_8859_1));
-                //escribirEspaciosEnBlanco(longitudMatricula - matricula.getBytes().length, rd);
-                rd.write(String.format("%1$-" + longitudMarca + "s", marca).getBytes(StandardCharsets.ISO_8859_1));
-                //escribirEspaciosEnBlanco(longitudMarca - marca.getBytes().length, rd);
-                rd.write(String.format("%1$-" + longitudModelo + "s", modelo).getBytes(StandardCharsets.ISO_8859_1));
-                //escribirEspaciosEnBlanco(longitudModelo - modelo.getBytes().length, rd);
-                this.registrosEnBytes += 71; // Sumamos 71 que es lo que ocupa en bytes un registro
-                this.totalRegistros += 1; // Sumamos 1 al total de registros
-                // Escribimos los registros posteriores
-                registrosPosteriores.forEach(r -> {
-                    try {
-                        rd.write(r);
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                });
-            }
+            rd.write(String.format("%1$-" + longitudMatricula + "s", matricula).getBytes(StandardCharsets.ISO_8859_1));
+            //escribirEspaciosEnBlanco(longitudMatricula - matricula.getBytes().length, rd);
+            rd.write(String.format("%1$-" + longitudMarca + "s", marca).getBytes(StandardCharsets.ISO_8859_1));
+            //escribirEspaciosEnBlanco(longitudMarca - marca.getBytes().length, rd);
+            rd.write(String.format("%1$-" + longitudModelo + "s", modelo).getBytes(StandardCharsets.ISO_8859_1));
+            //escribirEspaciosEnBlanco(longitudModelo - modelo.getBytes().length, rd);
+            this.registrosEnBytes += 71; // Sumamos 71 que es lo que ocupa en bytes un registro
+            this.totalRegistros += 1; // Sumamos 1 al total de registros
+            // Escribimos los registros posteriores
+            registrosPosteriores.forEach(r -> {
+                try {
+                    rd.write(r);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
         }
         return "Se ha insertado el registro " + matricula + "-" + marca + "-" + modelo + " en la posicion " + posicion;
     }
@@ -162,11 +170,10 @@ public class GestorBBDD {
             int veces = 0;
             // Mientras no hayamos llegado al final seguimos leyendo
             while ((rd.read(bufferMatricula)) != -1) {
-                posicion++;
-                veces++;
+                posicion++; // -> Esto nos indicará la posición en la se encuentra el registro
+                veces++; // -> Esto nos servirá para calcular donde está el próximo registro, si es que hay
                 // Nos adelantamos al siguiente registro
                 rd.seek(veces * 71L);
-                // Sumamos los bytes leídos
 
                 /* Hay que codificarlo en ISO_8859_1 porque si lo hacemos en UTF-8 puede no escribir los bytes exactos
                  * porque .writeBytes() escribe con codificación ISO_8859_1 ->
@@ -195,17 +202,21 @@ public class GestorBBDD {
         if (posicion == -1) {
             throw new GestorBBDDException("La matrícula a borrar no está registrada");
         }
+        // Creamos el path del nuevo fichero
         Path bbddNueva = new File(this.ficheroTemporal).toPath();
+        // Creamos el fichero nuevo
         Files.createFile(bbddNueva);
 
         try (RandomAccessFile leerRegistros = new RandomAccessFile(this.rutaFicheroDat, "r");
              RandomAccessFile escribirRegistros = new RandomAccessFile(this.ficheroTemporal, "rw")) {
-            System.out.println("Comenzando el traspaso...");
-            // Llamamos a función auxiliar para obtener la lista
+            // Llamamos a función auxiliar para obtener la lista de registros
             ArrayList<String> registros = pasarRegistrosALista(leerRegistros);
+            // Eliminamos el registro de la lista
             registros.remove((int) posicion);
+            // Escribimos los registros de la lista
             escribirRegistros(registros, escribirRegistros, 0);
         }
+        // Hacemos el cambio de ficheros
         intercambioFicheros();
         this.totalRegistros -= 1;
         this.registrosEnBytes -= 71;
@@ -337,6 +348,10 @@ public class GestorBBDD {
                     /* String.CASE_INSENSITIVE_ORDER -> Ordena sin tener en cuenta las mayúsculas y minúsculas,
                      porque devuelve un Comparator<String> */
                     .sorted(String.CASE_INSENSITIVE_ORDER).toList().reversed());
+            // Comparamos por el campo marca para que un case insensitive utlizamos el '.compareToIgnoreCase()'
+            /*ArrayList<String> listaRegistrosOrdenada = new ArrayList<>(listaRegistros.stream()
+                    .sorted((b1, b2) -> b1.substring(longitudMatricula, longitudMarca)
+                            .compareToIgnoreCase(b2.substring(longitudMatricula, longitudMarca))).toList().reversed());*/
             // Escribimos los registros en el fichero temporal
             escribirRegistros(listaRegistrosOrdenada, escribir, 0);
         }
