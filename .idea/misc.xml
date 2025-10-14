@@ -5,6 +5,7 @@
     <option name="originalFiles">
       <list>
         <option value="$PROJECT_DIR$/GestorBDD/pom.xml" />
+        <option value="$PROJECT_DIR$/AccesoDatos/pom.xml" />
       </list>
     </option>
   </component>
