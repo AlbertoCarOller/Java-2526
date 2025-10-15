@@ -1,0 +1,35 @@
+{
+  "consola": "Nintendo Switch",
+  "videojuegos": [
+    {
+      "company": "Nintendo",
+      "id": 6,
+      "pegi": 7,
+      "titulo": "Mario Kart 8 Deluxe"
+    },
+    {
+      "company": "Game Freak",
+      "id": 7,
+      "pegi": 7,
+      "titulo": "Pokémon Escarlata y Púrpura"
+    },
+    {
+      "company": "Mojang Studios",
+      "id": 8,
+      "pegi": 7,
+      "titulo": "Minecraft"
+    },
+    {
+      "company": "Square Enix",
+      "id": 9,
+      "pegi": 16,
+      "titulo": "Dragon Quest XI S"
+    },
+    {
+      "company": "Hello Games",
+      "id": 10,
+      "pegi": 12,
+      "titulo": "No Man's Sky"
+    }
+  ]
+}

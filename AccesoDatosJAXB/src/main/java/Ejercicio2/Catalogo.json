@@ -1,0 +1,29 @@
+{
+  "consola" : "PlayStation",
+  "videojuegos" : [ {
+    "id" : 1,
+    "titulo" : "Elden Ring",
+    "company" : "FromSoftware",
+    "pegi" : 16
+  }, {
+    "id" : 2,
+    "titulo" : "The Last of Us Part I",
+    "company" : "Naughty Dog",
+    "pegi" : 18
+  }, {
+    "id" : 3,
+    "titulo" : "Super Mario Bros. Wonder",
+    "company" : "Nintendo",
+    "pegi" : 3
+  }, {
+    "id" : 4,
+    "titulo" : "Hades",
+    "company" : "Supergiant Games",
+    "pegi" : 12
+  }, {
+    "id" : 5,
+    "titulo" : "Baldur's Gate 3",
+    "company" : "Larian Studios",
+    "pegi" : 18
+  } ]
+}

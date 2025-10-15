@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<curso id="2134">
+    <nombre>Ejercicio1XML.Curso 2DAM</nombre>
+    <estudiantes>
+        <estudiante dni="2387W">
+            <nombre>Alberto</nombre>
+            <edad>20</edad>
+        </estudiante>
+        <estudiante dni="9812N">
+            <nombre>Antonio</nombre>
+            <edad>37</edad>
+        </estudiante>
+        <estudiante dni="1859V">
+            <nombre>Chelu</nombre>
+            <edad>40</edad>
+        </estudiante>
+    </estudiantes>
+</curso>

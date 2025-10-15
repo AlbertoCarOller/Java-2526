@@ -22,12 +22,21 @@ public class Principal {
             transformador.transformarAXML(catalogo, path);
 
             // Destransformar de XML
-            Catalogo catalogo1 = transformador.transformarAObjeto(path);
+            Catalogo catalogo1 = transformador.transformarDeXMLAObjeto(path);
             // Mostramos el catálogo
             System.out.println(catalogo1);
 
             // Transformamos a Json
-            transformador.transformarAJSON(Path.of("src/main/java/Ejercicio2/Catalogo.json"), catalogo);
+            //transformador.transformarAJSON(Path.of("src/main/java/Ejercicio2/Catalogo.json"), catalogo);
+
+            //Transformamos de Json a objeto
+            //System.out.println(transformador.transformarDeJSONAObjeto(Path.of("src/main/java/Ejercicio2/CatalogoV2.json")));
+
+            // Transformamos a Json de la forma estándar
+            transformador.transformarObjetoAJackson(catalogo, Path.of("src/main/java/Ejercicio2/Catalogo.json"));
+
+            // Transformamos de objeto Java a Json
+            System.out.println(transformador.transformarJacksonAObjeto(Path.of("src/main/java/Ejercicio2/CatalogoV2.json")));
 
         } catch (Exception e) {
             throw new RuntimeException(e);

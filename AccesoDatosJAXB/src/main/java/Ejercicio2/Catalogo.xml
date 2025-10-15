@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<catalogo consola="PlayStation">
+    <videojusgos-stock>
+        <videojuego id="1">
+            <titulo>Elden Ring</titulo>
+            <company>FromSoftware</company>
+            <pegi>16</pegi>
+        </videojuego>
+        <videojuego id="2">
+            <titulo>The Last of Us Part I</titulo>
+            <company>Naughty Dog</company>
+            <pegi>18</pegi>
+        </videojuego>
+        <videojuego id="3">
+            <titulo>Super Mario Bros. Wonder</titulo>
+            <company>Nintendo</company>
+            <pegi>3</pegi>
+        </videojuego>
+        <videojuego id="4">
+            <titulo>Hades</titulo>
+            <company>Supergiant Games</company>
+            <pegi>12</pegi>
+        </videojuego>
+        <videojuego id="5">
+            <titulo>Baldur's Gate 3</titulo>
+            <company>Larian Studios</company>
+            <pegi>18</pegi>
+        </videojuego>
+    </videojusgos-stock>
+</catalogo>
