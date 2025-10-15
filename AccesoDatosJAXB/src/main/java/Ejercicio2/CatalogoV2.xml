@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<catalogo consola="Xbox">
+    <videojusgos-stock>
+        <videojuego id="1">
+            <titulo>Sea of Thieves</titulo>
+            <company>Rare</company>
+            <pegi>12</pegi>
+        </videojuego>
+        <videojuego id="2">
+            <titulo>Gears of Wars</titulo>
+            <company>Colusiom</company>
+            <pegi>18</pegi>
+        </videojuego>
+        <videojuego id="3">
+            <titulo>Fallout 76</titulo>
+            <company>Bethesda</company>
+            <pegi>18</pegi>
+        </videojuego>
+        <videojuego id="4">
+            <titulo>GTA VI</titulo>
+            <company>RockstarGames</company>
+            <pegi>18</pegi>
+        </videojuego>
+    </videojusgos-stock>
+</catalogo>

@@ -17,8 +17,8 @@ public class GestorBBDD {
     private long totalRegistros = 0;
     private long registrosEnBytes = 0; // -> Los registros que hay en bytes
     private final String rutaCSV; // -> La ruta donde se encuentra el CSV
-    private final String ficheroTemporal = "C:\\Users\\Alberto.DESKTOP-O1GC77M\\Desktop\\Java\\Java-2526\\GestorBDD\\" +
-            "src\\main\\java\\GestorBBDD\\baseTemporal.dat"; /* -> La ruta del fichero temporal que almacena los cambios
+    private final String ficheroTemporal = "C:\\Users\\Alberto.DESKTOP-O1GC77M\\Desktop\\" +
+            "Java\\Java-2526\\AccesoDatosS\\src\\GestorBBDD\\baseTemporal.dat"; /* -> La ruta del fichero temporal que almacena los cambios
              realizados en el fichero bbdd original, al cual (temporal) posteriormente se le cambia el nombre por el
               nombre de la ruta original */
 

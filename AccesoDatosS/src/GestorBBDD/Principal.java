@@ -9,10 +9,10 @@ public class Principal {
     public static void main(String[] args) {
         try {
             // Indicamos la ruta donde se ubica la bbdd
-            String rutaFicheroDat = "C:\\Users\\Alberto.DESKTOP-O1GC77M\\Desktop\\Java\\Java-2526\\ACCD\\src\\main\\" +
-                    "java\\GestorBBDD\\base_de_datos.dat";
+            String rutaFicheroDat = "C:\\Users\\Alberto.DESKTOP-O1GC77M\\Desktop\\Java\\Java-2526\\AccesoDatosS\\src" +
+                    "\\GestorBBDD\\base_de_datos.dat";
             // Indicamos la ruta donde se encuentra el CSV
-            String rutaCSV = "C:\\Users\\Alberto.DESKTOP-O1GC77M\\Desktop\\Java\\Java-2526\\ACCD\\src\\main\\java\\" +
+            String rutaCSV = "C:\\Users\\Alberto.DESKTOP-O1GC77M\\Desktop\\Java\\Java-2526\\AccesoDatosS\\src\\" +
                     "GestorBBDD\\BBDD Coches.csv";
             // Creamos el gestor de bbdd con las rutas creadas anteriormente
             GestorBBDD gestorBBDD = new GestorBBDD(rutaFicheroDat, rutaCSV);
