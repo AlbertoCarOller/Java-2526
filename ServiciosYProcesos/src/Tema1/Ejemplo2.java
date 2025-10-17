@@ -1,4 +1,4 @@
-package Comienzo;
+package Tema1;
 
 import java.io.IOException;
 

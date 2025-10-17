@@ -1,4 +1,4 @@
-package Comienzo.Tarea1;
+package Tema1.Tarea1;
 
 public class Contador10 {
     public static void main(String[] args) {

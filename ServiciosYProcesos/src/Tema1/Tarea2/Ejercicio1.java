@@ -1,4 +1,4 @@
-package Comienzo.Tarea2;
+package Tema1.Tarea2;
 
 import java.io.File;
 import java.io.IOException;
