@@ -6,7 +6,7 @@ import java.util.Scanner;
 public class Principal {
     static Scanner sc = new Scanner(System.in);
 
-    public static void main(String[] args) {
+    public static void main(String[] args) { // ACLARACIÓN, A PARTIR DE AHORA LAS EXCEPCIONES NO PARARÁN EL FLUJO DEL PROGRAMA
         try {
             // Indicamos la ruta donde se ubica la bbdd
             String rutaFicheroDat = "C:\\Users\\Alberto.DESKTOP-O1GC77M\\Desktop\\Java\\Java-2526\\AccesoDatosS\\src" +
