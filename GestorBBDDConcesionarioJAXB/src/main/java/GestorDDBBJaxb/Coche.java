@@ -2,6 +2,7 @@ package GestorDDBBJaxb;
 
 import jakarta.xml.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -30,7 +31,7 @@ public class Coche {
         this.matricula = matricula;
         this.marca = marca;
         this.modelo = modelo;
-        this.equipamiento = equipamiento;
+        this.equipamiento = new ArrayList<>(equipamiento);
     }
 
     // Creamos el constructor vacío

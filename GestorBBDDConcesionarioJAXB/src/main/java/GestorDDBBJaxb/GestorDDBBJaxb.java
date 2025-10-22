@@ -1,5 +1,7 @@
 package GestorDDBBJaxb;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
@@ -8,6 +10,7 @@ import javax.swing.*;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Properties;
@@ -17,13 +20,17 @@ public class GestorDDBBJaxb {
     // Creamos el Properties, con el cual vamos a poder acceder a las rutas
     private final Properties prop;
     // Creamos el contexto, en este caso siempre va a ser el de la base de datos basándose en la clase Catálogo
-    JAXBContext context;
+    private JAXBContext context;
     // Creamos el Path de la base de datos
-    String rutaBBDD;
+    private String rutaBBDD;
     // Creamos el Path del CSV
-    String rutaCSV;
+    private String rutaCSV;
     // Creamos la clase Concesionario como atributo
     private Concesionario concesionario;
+    // Creamos el ObjectMapper para mapear a JSON y desmapera de JSON a Objet
+    private ObjectMapper mapper;
+    // La ruta de exportación JSON
+    private String rutaExportacionJSON;
 
     // Creamos el constructor
     public GestorDDBBJaxb() throws GestorBBDDJaxbExcepcion, IOException, JAXBException {
@@ -34,7 +41,7 @@ public class GestorDDBBJaxb {
         prop = new Properties();
         // Cargamos la información del .properties al objeto Properties
         leerProperties();
-        // Cargamos la la ruta
+        // Cargamos la la ruta de la base de datos
         this.rutaBBDD = prop.getProperty("path.bbdd.xml");
         // Comprobamos que la hayamos podido obtener del properties
         if (this.rutaBBDD == null) {
@@ -46,19 +53,18 @@ public class GestorDDBBJaxb {
         if (this.rutaCSV == null) {
             throw new GestorBBDDJaxbExcepcion("No se ha encontrado la ruta de la csv en el properties");
         }
+        // Cargamos la ruta del JSON
+        this.rutaExportacionJSON = prop.getProperty("path.json");
+        // Comprobamos que la hayamos podido obtener del properties
+        if (this.rutaExportacionJSON == null) {
+            throw new GestorBBDDJaxbExcepcion("No se ha encontrado la ruta de exportación a JSON en el properties");
+        }
         // Creamos la bbdd en caso de que no exista
         if (!new File(this.rutaBBDD).exists()) {
             Files.createFile(Path.of(this.rutaBBDD));
         }
         // Creamos el documento XML con el concesionario vacío
-        try (OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(this.rutaBBDD))) {
-            // Creamos el marshaller para poder crear el XML
-            Marshaller m = context.createMarshaller();
-            // Formateamos para que se idente bien al crear el XML
-            m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-            // Creamos el XML
-            m.marshal(this.concesionario, out);
-        }
+        importarParaXML();
     }
 
     /**
@@ -125,8 +131,9 @@ public class GestorDDBBJaxb {
                         // Añadimos un coche con equipamientos
                         this.concesionario.getCoches().add(new Coche(coche[0].trim(),
                                 coche[1].trim(), coche[2].trim(), Arrays.stream(extras)
-                                .map(String::trim).toList())); // -> Hacemos un flujo para hacer trim por cada extra
-                        // Confirmamos que el coche tenga todos los campos obligatorios para poder formalo
+                                .map(String::trim).collect(Collectors.toCollection(ArrayList::new)))); /* -> Hacemos un flujo
+                                 para hacer trim por cada extra */
+                        // Confirmamos que el coche tenga todos los campos obligatorios para poder formarlo
                         contadorCochesAgregados++;
                     } else if (coche.length == 3) {
                         this.concesionario.getCoches().add(new Coche(coche[0].trim(), coche[1].trim(), coche[2].trim(), null));
@@ -184,7 +191,7 @@ public class GestorDDBBJaxb {
      */
     private Coche obtenerCoche(String matricula) throws GestorBBDDJaxbExcepcion {
         return (this.concesionario.getCoches().stream().filter(c -> c.getMatricula()
-                .equals(matricula)).findAny()).orElseThrow(() -> new GestorBBDDJaxbExcepcion("No se ha encontado al coche"));
+                .equals(matricula)).findAny()).orElseThrow(() -> new GestorBBDDJaxbExcepcion("No se ha encontado el coche"));
     }
 
     /**
@@ -198,5 +205,71 @@ public class GestorDDBBJaxb {
         this.concesionario.getCoches().remove(obtenerCoche(matricula));
         // Volcamos los datos
         importarParaXML();
+    }
+
+    /**
+     * Esta función va a modificar la marca del coche con la matrícula pasada
+     *
+     * @param matricula la matrícula del vehículo a modificar
+     * @param marca     la nueva marca
+     * @throws GestorBBDDJaxbExcepcion
+     */
+    public void modificarMarca(String matricula, String marca) throws GestorBBDDJaxbExcepcion, JAXBException, IOException {
+        obtenerCoche(matricula).setMarca(marca); // -> Modificamos la marca
+        // Volcamos los datos
+        importarParaXML();
+    }
+
+    /**
+     * Esta función va a modificar el modelo del coche con la matrícula pasada
+     *
+     * @param matricula la matrícula del vehículo a modificar
+     * @param modelo    el nuevo modelo
+     * @throws GestorBBDDJaxbExcepcion
+     */
+    public void modificarModelo(String matricula, String modelo) throws GestorBBDDJaxbExcepcion, JAXBException, IOException {
+        obtenerCoche(matricula).setModelo(modelo); // -> Modificamos el modelo
+        // Volcamos los datos
+        importarParaXML();
+    }
+
+    /**
+     * Esta función va a modificar el extra con el índice indicado
+     * por el usuario
+     *
+     * @param matricula   la matrícula del vehículo a buscar
+     * @param extra       el extra nuevo que va a introducir
+     * @param indiceExtra el índice donde se encuentra el extra a modificar
+     * @throws GestorBBDDJaxbExcepcion
+     */
+    public void modificarExtra(String matricula, String extra, int indiceExtra) throws GestorBBDDJaxbExcepcion, JAXBException, IOException {
+        obtenerCoche(matricula).getEquipamiento().set(indiceExtra, extra); // -> Modificamos un extra concreto
+        // Volcamos los datos
+        importarParaXML();
+    }
+
+    /**
+     * Esta función va a exportar a un archivo JSON un coche o el concesionario
+     * completo dependiendo de lo que pida el usuario
+     *
+     * @param soloCoche para indicar si queremos exportar solo un coche o no
+     * @param matricula en caso de que quiera exportar un coche, se le indica la matrícula del coche que quieras
+     * @throws IOException
+     * @throws GestorBBDDJaxbExcepcion
+     */
+    public void pasarJSON(boolean soloCoche, String matricula) throws IOException, GestorBBDDJaxbExcepcion {
+        try (OutputStreamWriter escribir = new OutputStreamWriter(new FileOutputStream(prop.getProperty("path.json")))) {
+            this.mapper = new ObjectMapper();
+            // Configuramos el JSON para que su identación sea correcta
+            mapper.enable(SerializationFeature.INDENT_OUTPUT);
+            // Si solo quiere pasar un coche
+            if (soloCoche) {
+                mapper.writeValue(escribir, obtenerCoche(matricula));
+
+                // En caso de que quiera pasar toda la base de datos, es decir, el Concesionario
+            } else {
+                mapper.writeValue(escribir, this.concesionario);
+            }
+        }
     }
 }
