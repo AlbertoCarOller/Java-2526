@@ -3,7 +3,9 @@ package GestorDDBBJaxb;
 import jakarta.xml.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement(name = "concesionario-de-coches")
@@ -11,17 +13,18 @@ public class Concesionario {
     // Creamos los atributos
     @XmlElementWrapper(name = "listado-coches")
     @XmlElement(name = "coche")
-    private List<Coche> coches = new ArrayList<Coche>();
+    // Creamos un conjunto para no tener que comprobar la repetición de coches
+    private Set<Coche> coches = new HashSet<Coche>();
 
     // Creamos el constructor vacío
     public Concesionario() {}
 
     // Hacemos los getters y setters
-    public List<Coche> getCoches() {
+    public Set<Coche> getCoches() {
         return coches;
     }
 
-    public void setCoches(List<Coche> coches) {
+    public void setCoches(Set<Coche> coches) {
         this.coches = coches;
     }
 

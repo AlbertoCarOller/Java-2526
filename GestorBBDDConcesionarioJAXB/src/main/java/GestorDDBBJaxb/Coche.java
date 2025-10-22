@@ -10,6 +10,8 @@ public class Coche {
     // Creamos los atributos
     @XmlAttribute(name = "id")
     private int id;
+    // Creamos una variable auxiliar para dar valor al id
+    private static int idAuxiliar = 0;
     @XmlElement(name = "matricula-coche")
     private String matricula;
     @XmlElement(name = "marca")
@@ -22,8 +24,9 @@ public class Coche {
     private List<String> equipamiento;
 
     // Creamos el constructor
-    public Coche(int id, String matricula, String marca, String modelo, List<String> equipamiento) {
-        this.id = id;
+    public Coche(String matricula, String marca, String modelo, List<String> equipamiento) {
+        // Aunmentamos el id por cada coche creado
+        id = this.idAuxiliar++;
         this.matricula = matricula;
         this.marca = marca;
         this.modelo = modelo;
@@ -31,7 +34,8 @@ public class Coche {
     }
 
     // Creamos el constructor vacío
-    public Coche() {}
+    public Coche() {
+    }
 
     // Creamos los getters y setters
     public int getId() {
@@ -68,10 +72,6 @@ public class Coche {
 
     public List<String> getEquipamiento() {
         return equipamiento;
-    }
-
-    public void setEquipamiento(List<String> equipamiento) {
-        this.equipamiento = equipamiento;
     }
 
     // Hacemos un toString

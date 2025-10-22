@@ -8,7 +8,10 @@ import javax.swing.*;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 public class GestorDDBBJaxb {
     // Creamos el Properties, con el cual vamos a poder acceder a las rutas
@@ -48,7 +51,7 @@ public class GestorDDBBJaxb {
             Files.createFile(Path.of(this.rutaBBDD));
         }
         // Creamos el documento XML con el concesionario vacío
-        try(OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(this.rutaBBDD))) {
+        try (OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(this.rutaBBDD))) {
             // Creamos el marshaller para poder crear el XML
             Marshaller m = context.createMarshaller();
             // Formateamos para que se idente bien al crear el XML
@@ -76,47 +79,35 @@ public class GestorDDBBJaxb {
     }
 
     /**
-     * Esta función va a comprobar si existe o no la matrícula pasada por parámetros
-     *
-     * @param matricula la matrícula a comprobar su existencia
-     * @return si existe o no
-     * @throws JAXBException
-     * @throws GestorBBDDJaxbExcepcion
-     * @throws IOException
-     */
-    private boolean existeMatricula(String matricula) {
-        return this.concesionario.getCoches().stream().anyMatch(c -> c.getMatricula().equals(matricula));
-    }
-
-    /**
      * Esta función va a añadir un coche al objeto Concesionario y lo
      * pasamos al XML, es decir la bbdd
+     *
      * @param coche el objeto coche el cual queremos introducir
      * @throws GestorBBDDJaxbExcepcion
      * @throws IOException
      * @throws JAXBException
      */
-    public void agregarCoche(Coche coche) throws GestorBBDDJaxbExcepcion, IOException, JAXBException {
-        // Comprobamos si ya existe el coche
-        if (existeMatricula(coche.getMatricula())) {
-            throw new GestorBBDDJaxbExcepcion("El coche ya existe en la base de datos");
-        }
+    public boolean agregarCoche(Coche coche) throws GestorBBDDJaxbExcepcion, IOException, JAXBException {
+        // Para posteriormente decir si se ha añadido o no
+        boolean inserccionado = false;
         // Añadimos el coche al objeto Concesionario
-        concesionario.getCoches().add(coche);
-
-        // Creamos el flujo de escritura para pasarlo a XML
-        try(OutputStreamWriter escribir = new OutputStreamWriter(new FileOutputStream(prop.getProperty("path.bbdd.xml")))) {
-            Marshaller marshaller = this.context.createMarshaller();
-            // Formateamos
-            marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-            // Transformamos a el objeto a XML
-            marshaller.marshal(this.concesionario, escribir);
-        }
+        inserccionado = concesionario.getCoches().add(coche);
+        // Volcamos los cambios
+        importarParaXML();
+        return inserccionado;
     }
 
-    public void importarCocheCSV() throws IOException {
+    /**
+     * Esta función va a guardar los coches del CSV eal conjunto de coches
+     * del concesionario, evitando repetidos, gracias al Set, después volcamos
+     * el objeto a la base de datos XML
+     *
+     * @throws IOException
+     */
+    public int importarCocheCSV() throws IOException, JAXBException {
+        int contadorCochesAgregados = 0;
         // Creamos el flujo de lectura para el CSV
-        try(BufferedReader leer = new BufferedReader(new FileReader(prop.getProperty("path.csv")))) {
+        try (BufferedReader leer = new BufferedReader(new FileReader(prop.getProperty("path.csv")))) {
             // La línea que ha leído
             String linea;
             // Contador de líneas, para que se salte la primera línea
@@ -126,15 +117,86 @@ public class GestorDDBBJaxb {
                 // No se lee la primera línea
                 if (contador != 0) {
                     // Separamos los campos del coche
-                    String[] coches = linea.split(";");
+                    String[] coche = linea.split(";");
                     // Comprobamos si el coche tiene equipamientos
-                    if (coches.length == 4) {
+                    if (coche.length == 4) {
                         // Obtenemos los extras de cada coche
-                        String[] extras =  coches[3].split("\\|");
+                        String[] extras = coche[3].split("\\|");
+                        // Añadimos un coche con equipamientos
+                        this.concesionario.getCoches().add(new Coche(coche[0].trim(),
+                                coche[1].trim(), coche[2].trim(), Arrays.stream(extras)
+                                .map(String::trim).toList())); // -> Hacemos un flujo para hacer trim por cada extra
+                        // Confirmamos que el coche tenga todos los campos obligatorios para poder formalo
+                        contadorCochesAgregados++;
+                    } else if (coche.length == 3) {
+                        this.concesionario.getCoches().add(new Coche(coche[0].trim(), coche[1].trim(), coche[2].trim(), null));
+                        contadorCochesAgregados++;
                     }
                 }
                 contador++;
             }
         }
+        // Volcamos los cambios
+        importarParaXML();
+        return contadorCochesAgregados;
+    }
+
+    /**
+     * Esta es una función auxiliar que va a importar el objeto Concesionario
+     * a un archivo XML
+     *
+     * @throws JAXBException
+     * @throws IOException
+     */
+    private void importarParaXML() throws JAXBException, IOException {
+        try (OutputStreamWriter escribir = new OutputStreamWriter(new FileOutputStream(prop.getProperty("path.bbdd.xml")))) {
+            // Creamos el Marshaller gracias al contexto
+            Marshaller marshaller = this.context.createMarshaller();
+            // Formateamos
+            marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+            // Transformamos a el objeto a XML
+            marshaller.marshal(this.concesionario, escribir);
+        }
+    }
+
+    /**
+     * Esta función va a ordenar la lista de coches del concesionario,
+     * en este caso se va a ordenar por el campo matrícula
+     *
+     * @throws JAXBException
+     * @throws IOException
+     */
+    public void ordenarPorMatricula() throws JAXBException, IOException {
+        this.concesionario.setCoches(this.concesionario.getCoches().stream()
+                .sorted((m1, m2) -> m2.getMatricula().compareTo(m1.getMatricula()))
+                // Gracias al LinkedHashSet sí se puede mantener el orden
+                .collect(Collectors.toCollection(LinkedHashSet::new)));
+        // Volcamos la información
+        importarParaXML();
+    }
+
+    /**
+     * Esta función buscar un coche por la matrícula, en caso de que no exista se lanzará excepción
+     *
+     * @param matricula la matrícula a introducir para buscar el coche
+     * @return devuelve el objeto Coche
+     * @throws GestorBBDDJaxbExcepcion
+     */
+    private Coche obtenerCoche(String matricula) throws GestorBBDDJaxbExcepcion {
+        return (this.concesionario.getCoches().stream().filter(c -> c.getMatricula()
+                .equals(matricula)).findAny()).orElseThrow(() -> new GestorBBDDJaxbExcepcion("No se ha encontado al coche"));
+    }
+
+    /**
+     * Esta función elimina el coche de la lista del concesionario
+     *
+     * @param matricula la matrícula
+     * @throws GestorBBDDJaxbExcepcion
+     */
+    public void eliminarCoche(String matricula) throws GestorBBDDJaxbExcepcion, JAXBException, IOException {
+        // Eliminamos el coche
+        this.concesionario.getCoches().remove(obtenerCoche(matricula));
+        // Volcamos los datos
+        importarParaXML();
     }
 }
