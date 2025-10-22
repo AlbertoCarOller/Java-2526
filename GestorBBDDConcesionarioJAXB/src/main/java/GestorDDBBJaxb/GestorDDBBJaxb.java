@@ -22,10 +22,10 @@ public class GestorDDBBJaxb {
     // Creamos la clase Concesionario como atributo
     private Concesionario concesionario;
 
-    // Creamos el constructor vacío
+    // Creamos el constructor
     public GestorDDBBJaxb() throws GestorBBDDJaxbExcepcion, IOException, JAXBException {
         this.concesionario = new Concesionario();
-        // Creamos el contexto, en este el Concesario
+        // Creamos el contexto, en este el Concesionario
         this.context = JAXBContext.newInstance(Concesionario.class);
         // Inicializamos el properties
         prop = new Properties();
@@ -88,20 +88,53 @@ public class GestorDDBBJaxb {
         return this.concesionario.getCoches().stream().anyMatch(c -> c.getMatricula().equals(matricula));
     }
 
-    // TODO: por comentar y quizás falte la sobreescritura
+    /**
+     * Esta función va a añadir un coche al objeto Concesionario y lo
+     * pasamos al XML, es decir la bbdd
+     * @param coche el objeto coche el cual queremos introducir
+     * @throws GestorBBDDJaxbExcepcion
+     * @throws IOException
+     * @throws JAXBException
+     */
     public void agregarCoche(Coche coche) throws GestorBBDDJaxbExcepcion, IOException, JAXBException {
         // Comprobamos si ya existe el coche
         if (existeMatricula(coche.getMatricula())) {
             throw new GestorBBDDJaxbExcepcion("El coche ya existe en la base de datos");
         }
-        // Añadimos el coche al concesionario
+        // Añadimos el coche al objeto Concesionario
         concesionario.getCoches().add(coche);
 
-        // Creamos el flujo de escritura
+        // Creamos el flujo de escritura para pasarlo a XML
         try(OutputStreamWriter escribir = new OutputStreamWriter(new FileOutputStream(prop.getProperty("path.bbdd.xml")))) {
             Marshaller marshaller = this.context.createMarshaller();
+            // Formateamos
             marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+            // Transformamos a el objeto a XML
             marshaller.marshal(this.concesionario, escribir);
+        }
+    }
+
+    public void importarCocheCSV() throws IOException {
+        // Creamos el flujo de lectura para el CSV
+        try(BufferedReader leer = new BufferedReader(new FileReader(prop.getProperty("path.csv")))) {
+            // La línea que ha leído
+            String linea;
+            // Contador de líneas, para que se salte la primera línea
+            int contador = 0;
+            // Mientras haya líneas
+            while ((linea = leer.readLine()) != null) {
+                // No se lee la primera línea
+                if (contador != 0) {
+                    // Separamos los campos del coche
+                    String[] coches = linea.split(";");
+                    // Comprobamos si el coche tiene equipamientos
+                    if (coches.length == 4) {
+                        // Obtenemos los extras de cada coche
+                        String[] extras =  coches[3].split("\\|");
+                    }
+                }
+                contador++;
+            }
         }
     }
 }
