@@ -5,15 +5,13 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
+import jakarta.xml.bind.Unmarshaller;
 
 import javax.swing.*;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedHashSet;
-import java.util.Properties;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class GestorDDBBJaxb {
@@ -34,7 +32,6 @@ public class GestorDDBBJaxb {
 
     // Creamos el constructor
     public GestorDDBBJaxb() throws GestorBBDDJaxbExcepcion, IOException, JAXBException {
-        this.concesionario = new Concesionario();
         // Creamos el contexto, en este el Concesionario
         this.context = JAXBContext.newInstance(Concesionario.class);
         // Inicializamos el properties
@@ -62,9 +59,17 @@ public class GestorDDBBJaxb {
         // Creamos la bbdd en caso de que no exista
         if (!new File(this.rutaBBDD).exists()) {
             Files.createFile(Path.of(this.rutaBBDD));
+            // Creamos el concesionario vacío
+            this.concesionario = new Concesionario();
+            // Creamos el documento XML con el concesionario vacío
+            importarParaXML();
+
+            // En caso de que ya exista un XML, se carga en el objeto
+        } else {
+            this.concesionario = deseliarizarXML();
+            // Actualizamos el id
+            actualizarID();
         }
-        // Creamos el documento XML con el concesionario vacío
-        importarParaXML();
     }
 
     /**
@@ -85,6 +90,20 @@ public class GestorDDBBJaxb {
     }
 
     /**
+     * Esta función va a desceliarizar un XML a un Objeto, en este caso a un Concesionario
+     *
+     * @return devuelve el concesionario
+     * @throws IOException
+     * @throws JAXBException
+     */
+    private Concesionario deseliarizarXML() throws IOException, JAXBException {
+        try (InputStreamReader leer = new InputStreamReader(new FileInputStream(prop.getProperty("path.bbdd.xml")))) {
+            Unmarshaller unmarshaller = this.context.createUnmarshaller();
+            return (Concesionario) unmarshaller.unmarshal(leer);
+        }
+    }
+
+    /**
      * Esta función va a añadir un coche al objeto Concesionario y lo
      * pasamos al XML, es decir la bbdd
      *
@@ -93,14 +112,13 @@ public class GestorDDBBJaxb {
      * @throws IOException
      * @throws JAXBException
      */
-    public boolean agregarCoche(Coche coche) throws GestorBBDDJaxbExcepcion, IOException, JAXBException {
-        // Para posteriormente decir si se ha añadido o no
-        boolean inserccionado = false;
+    public void agregarCoche(Coche coche) throws GestorBBDDJaxbExcepcion, IOException, JAXBException {
         // Añadimos el coche al objeto Concesionario
-        inserccionado = concesionario.getCoches().add(coche);
+        if (!concesionario.getCoches().add(coche)) {
+            throw new GestorBBDDJaxbExcepcion("El coche ya existe");
+        }
         // Volcamos los cambios
         importarParaXML();
-        return inserccionado;
     }
 
     /**
@@ -271,5 +289,96 @@ public class GestorDDBBJaxb {
                 mapper.writeValue(escribir, this.concesionario);
             }
         }
+    }
+
+    /**
+     * Esta función va a recalcular el id que va a empezar a tener
+     * los próximos cohes que se vayan añadiendo a la base de datos
+     * teniendo en cuenta que al haber una base de datos o quere importar
+     * el JSON el id debe continuar con el número posterior del id más
+     * grande
+     */
+    private void actualizarID() throws GestorBBDDJaxbExcepcion {
+        // Recalculamos el id de los coches porque si no empezará desde el principio y si cargamos coches el id no puede repetirse
+        Coche.idAuxiliar = (this.concesionario.getCoches().stream().max(Comparator.comparingInt((c) -> c.getId())))
+                .orElseThrow(() -> new GestorBBDDJaxbExcepcion("No se han encontrados coches")).getId();
+    }
+
+    /**
+     * Esta función va a importar un JSON, hay dos opciones, puede ser tanto un nuevo
+     * concesionario que sustituirá la bbdd actual o bien importa un JSON que contiene
+     * un coche
+     *
+     * @param todo controla si se quiere importar un concesionario o un coche
+     * @throws IOException
+     * @throws JAXBException
+     * @throws GestorBBDDJaxbExcepcion
+     */
+    public void importarJSON(boolean todo) throws IOException, JAXBException, GestorBBDDJaxbExcepcion {
+        // En caso de querer importar el concesionario completo entra
+        if (todo) {
+            // Abrimos un flujo de lectura del concesionario nuevo
+            try (InputStreamReader leer = new InputStreamReader(new FileInputStream(prop.getProperty("path.jsonIConcesionario")))) {
+                // Sobreescribimos el objeto concesionario
+                this.concesionario = this.mapper.readValue(leer, Concesionario.class);
+                // Lo volcamos al XML
+                importarParaXML();
+                // Actualizamos el id
+                actualizarID();
+            }
+            // En caso de querer solo inportar un coche y añadirlo
+        } else {
+            try (InputStreamReader leer = new InputStreamReader(new FileInputStream(prop.getProperty("path.jsonICoche")))) {
+                // Metemos el coche en el concesionario
+                agregarCoche(this.mapper.readValue(leer, Coche.class));
+                // Lo volcamos al XML
+                importarParaXML();
+            }
+        }
+    }
+
+    /**
+     * Esta función va a crear un archivo de texto donde se va a guardar información
+     * general sobre la base de datos
+     *
+     * @throws IOException
+     */
+    public void realizarResumen() throws IOException {
+        // Flujo de escritura
+        try (BufferedWriter escribir = new BufferedWriter(new FileWriter(prop.getProperty("path.resumen")))) {
+            escribir.write("Número total de coches: " + this.concesionario.getCoches().size() + "\n\n" +
+                    "Coches agrupados por marca: " + (!cochesPorMarca().isEmpty() ? cochesPorMarca() : "No hay datos") + "\n\n" +
+                    "Equipamiento que más se repite: " + equipamientoMasRepetido());
+        }
+    }
+
+    /**
+     * Esta función va a transformar un la lista de coches
+     * en un mapa agrupado por matrícula
+     *
+     * @return un mapa de coches por marca
+     */
+    private String cochesPorMarca() {
+        // groupingBy() -> Agrupa por un key pasado, el value será una lista de los objetos que tengan esa key
+        return this.concesionario.getCoches().stream().collect(Collectors.groupingBy(((c) -> c.getMarca())))
+                .entrySet().stream().map((e) -> e.getKey() + ": " + e.getValue()).collect(Collectors
+                        .joining("\n"));
+    }
+
+    /**
+     * Esta función va a buscar la herramienta más utilizada de todas, lo hace agrupando todas
+     * contando así con Collectors.counting() cuantas veces aparecen, en caso de que no haya ninguna
+     * devolvemos un mensaje diciendo que no hay datos
+     *
+     * @return el equipamiento o 'No hay datos'
+     */
+    private String equipamientoMasRepetido() {
+        /* Obtenemos un mapa de todas las herramientas y el número de veces que aparece, Collectors.counting()
+         cuenta las veces que aparece el key */
+        return this.concesionario.getCoches().stream().flatMap((c) -> c.getEquipamiento().stream())
+                .collect(Collectors.groupingBy(s -> s, Collectors.counting())).
+                entrySet().stream().max(Map.Entry.comparingByValue())
+                // En caso de que no haya datos, se devolverá 'no hay datos'
+                .orElseGet(() -> Map.entry("No hay datos", 0L)).getKey(); // TODO: tener en cuenta que puede haber varios max
     }
 }

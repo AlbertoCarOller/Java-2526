@@ -11,8 +11,8 @@ public class Coche {
     // Creamos los atributos
     @XmlAttribute(name = "id")
     private int id;
-    // Creamos una variable auxiliar para dar valor al id
-    private static int idAuxiliar = 0;
+    // Creamos una variable auxiliar para dar valor al id, esto nos servirá también para recalcular el id
+    protected static int idAuxiliar = 0;
     @XmlElement(name = "matricula-coche")
     private String matricula;
     @XmlElement(name = "marca")
@@ -27,7 +27,7 @@ public class Coche {
     // Creamos el constructor
     public Coche(String matricula, String marca, String modelo, List<String> equipamiento) {
         // Aunmentamos el id por cada coche creado
-        id = this.idAuxiliar++;
+        id = ++this.idAuxiliar;
         this.matricula = matricula;
         this.marca = marca;
         this.modelo = modelo;

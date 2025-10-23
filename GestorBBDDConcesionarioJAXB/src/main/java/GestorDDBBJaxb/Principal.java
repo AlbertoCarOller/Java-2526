@@ -21,7 +21,12 @@ public class Principal {
             gestorDDBBJaxb.modificarMarca("810TYBU", "Lapolinni");
             gestorDDBBJaxb.modificarExtra("3456JKL", "envenenador", 0);
             gestorDDBBJaxb.modificarModelo("810TYBU", "lili");
-            gestorDDBBJaxb.pasarJSON(true, "810TYBU");
+            gestorDDBBJaxb.pasarJSON(false, "");
+            gestorDDBBJaxb.agregarCoche(new Coche("666YUQE", "Africa", "984",
+                    new ArrayList<>(List.of("Lasaña caducada"))));
+            gestorDDBBJaxb.importarJSON(true);
+            gestorDDBBJaxb.importarJSON(false);
+            gestorDDBBJaxb.realizarResumen();
         } catch (IOException | GestorBBDDJaxbExcepcion | JAXBException e) {
             System.out.println("Error: " + e.getMessage());
         }
