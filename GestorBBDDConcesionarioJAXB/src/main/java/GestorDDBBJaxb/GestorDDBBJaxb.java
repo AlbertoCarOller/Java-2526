@@ -368,7 +368,7 @@ public class GestorDDBBJaxb {
     /**
      * Esta función va a buscar la herramienta más utilizada de todas, lo hace agrupando todas
      * contando así con Collectors.counting() cuantas veces aparecen, en caso de que no haya ninguna
-     * devolvemos un mensaje diciendo que no hay datos
+     * devolvemos un mensaje diciendo que no hay datos, SE TIENE EN CUENTA QUE HAYA VARIOS MAX
      *
      * @return el equipamiento o 'No hay datos'
      */
