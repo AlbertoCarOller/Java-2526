@@ -1,5 +1,8 @@
 package GestorDDBBJaxb;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.xml.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -24,18 +27,21 @@ public class Coche {
     @XmlElement(name = "extra")
     private List<String> equipamiento;
 
-    // Creamos el constructor
-    public Coche(String matricula, String marca, String modelo, List<String> equipamiento) {
-        // Aunmentamos el id por cada coche creado
-        id = ++this.idAuxiliar;
+    // Creamos el constructor vacío
+    public Coche() {
+    }
+
+    // Creamos el constructor explícito para JSON, pero que sirve para el resto, para que el id se actualice correctamente al importar
+    @JsonCreator
+    public Coche(@JsonProperty("matricula") String matricula,
+                 @JsonProperty("marca")  String marca,
+                 @JsonProperty("modelo") String modelo,
+                 @JsonProperty("equipamiento") List<String> equipamiento) {
         this.matricula = matricula;
         this.marca = marca;
         this.modelo = modelo;
         this.equipamiento = new ArrayList<>(equipamiento);
-    }
-
-    // Creamos el constructor vacío
-    public Coche() {
+        id = ++this.idAuxiliar;
     }
 
     // Creamos los getters y setters
@@ -43,6 +49,8 @@ public class Coche {
         return id;
     }
 
+    // Esto es para que al crearme el objeto JSON no coga el set id para modificar el id
+    @JsonIgnore
     public void setId(int id) {
         this.id = id;
     }

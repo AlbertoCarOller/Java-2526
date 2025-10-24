@@ -32,6 +32,8 @@ public class GestorDDBBJaxb {
 
     // Creamos el constructor
     public GestorDDBBJaxb() throws GestorBBDDJaxbExcepcion, IOException, JAXBException {
+        // Declaramos el ObjectMapper
+        mapper = new ObjectMapper();
         // Creamos el contexto, en este el Concesionario
         this.context = JAXBContext.newInstance(Concesionario.class);
         // Inicializamos el properties
@@ -90,7 +92,7 @@ public class GestorDDBBJaxb {
     }
 
     /**
-     * Esta función va a desceliarizar un XML a un Objeto, en este caso a un Concesionario
+     * Esta función va a deserializar un XML a un Objeto, en este caso a un Concesionario
      *
      * @return devuelve el concesionario
      * @throws IOException
@@ -154,7 +156,7 @@ public class GestorDDBBJaxb {
                         // Confirmamos que el coche tenga todos los campos obligatorios para poder formarlo
                         contadorCochesAgregados++;
                     } else if (coche.length == 3) {
-                        this.concesionario.getCoches().add(new Coche(coche[0].trim(), coche[1].trim(), coche[2].trim(), null));
+                        this.concesionario.getCoches().add(new Coche(coche[0].trim(), coche[1].trim(), coche[2].trim(), new ArrayList<>()));
                         contadorCochesAgregados++;
                     }
                 }
@@ -277,7 +279,6 @@ public class GestorDDBBJaxb {
      */
     public void pasarJSON(boolean soloCoche, String matricula) throws IOException, GestorBBDDJaxbExcepcion {
         try (OutputStreamWriter escribir = new OutputStreamWriter(new FileOutputStream(prop.getProperty("path.json")))) {
-            this.mapper = new ObjectMapper();
             // Configuramos el JSON para que su identación sea correcta
             mapper.enable(SerializationFeature.INDENT_OUTPUT);
             // Si solo quiere pasar un coche
@@ -299,7 +300,7 @@ public class GestorDDBBJaxb {
      * grande
      */
     private void actualizarID() throws GestorBBDDJaxbExcepcion {
-        // Recalculamos el id de los coches porque si no empezará desde el principio y si cargamos coches el id no puede repetirse
+        // Recalculamos el id de los coches porque si no, empezará desde el principio y si cargamos coches el id no puede repetirse
         Coche.idAuxiliar = (this.concesionario.getCoches().stream().max(Comparator.comparingInt((c) -> c.getId())))
                 .orElseThrow(() -> new GestorBBDDJaxbExcepcion("No se han encontrados coches")).getId();
     }
@@ -383,6 +384,6 @@ public class GestorDDBBJaxb {
                         entrySet().stream().max(Map.Entry.comparingByValue())
                         // En caso de que no haya datos, se devolverá 'no hay datos'
                         .orElseGet(() -> Map.entry("No hay datos", 0L)).getValue()))
-                .map(Map.Entry::getKey).toList(); // TODO: comrpobar que funciona
+                .map(Map.Entry::getKey).toList();
     }
 }

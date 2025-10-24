@@ -1,8 +1,0 @@
-Número total de coches: 4
-
-Coches agrupados por marca: Volkswagen: [Coche{id=2, matricula='9876XYZ', marca='Volkswagen', modelo='Golf', equipamiento=[App-Connect, Faros LED, Control de crucero adaptativo]}]
-Tesla: [Coche{id=1, matricula='4567JKL', marca='Tesla', modelo='Model Y', equipamiento=[Autopilot, Techo de cristal, Llantas 20]}]
-Ford: [Coche{id=3, matricula='1234ABC', marca='Ford', modelo='Mustang Mach-E', equipamiento=[Pantalla, Techo panorámico, Sonido B&O]}]
-BMW: [Coche{id=4, matricula='5588LMN', marca='BMW', modelo='i4', equipamiento=[BMW Curved Display, Suspensión adaptativa M, Faros Láser]}]
-
-Equipamiento que más se repite: Techo de cristal

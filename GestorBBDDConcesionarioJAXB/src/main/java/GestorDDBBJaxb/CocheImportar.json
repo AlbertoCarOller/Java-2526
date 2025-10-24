@@ -1,7 +1,6 @@
 {
-  "id" : 4,
   "matricula" : "5588LMN",
   "marca" : "BMW",
   "modelo" : "i4",
-  "equipamiento" : [ "BMW Curved Display", "Suspensión adaptativa M", "Faros Láser" ]
+  "equipamiento" : []
 }

@@ -1,21 +1,18 @@
 {
   "coches" : [ {
-    "id" : 1,
     "matricula" : "4567JKL",
     "marca" : "Tesla",
     "modelo" : "Model Y",
-    "equipamiento" : [ "Autopilot", "Techo de cristal", "Llantas 20" ]
+    "equipamiento" : [ "Autopilot", "Techo de cristal", "Llantas 20", "Faros LED" ]
   }, {
-    "id" : 2,
     "matricula" : "9876XYZ",
     "marca" : "Volkswagen",
     "modelo" : "Golf",
     "equipamiento" : [ "App-Connect", "Faros LED", "Control de crucero adaptativo" ]
   }, {
-    "id" : 3,
     "matricula" : "1234ABC",
     "marca" : "Ford",
     "modelo" : "Mustang Mach-E",
-    "equipamiento" : [ "Pantalla", "Techo panorámico", "Sonido B&O" ]
+    "equipamiento" : [ "Pantalla", "Techo panorámico", "Sonido BO" ]
   } ]
 }
