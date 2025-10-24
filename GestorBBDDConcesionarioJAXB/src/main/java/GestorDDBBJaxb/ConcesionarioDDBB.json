@@ -1,0 +1,33 @@
+{
+  "coches" : [ {
+    "id" : 2,
+    "matricula" : "810TYBU",
+    "marca" : "Lapolinni",
+    "modelo" : "lili",
+    "equipamiento" : [ "Escoba" ]
+  }, {
+    "id" : 5,
+    "matricula" : "7890MNP",
+    "marca" : "Peugeot",
+    "modelo" : "208",
+    "equipamiento" : [ "Navegador GPS" ]
+  }, {
+    "id" : 4,
+    "matricula" : "3456JKL",
+    "marca" : "Seat",
+    "modelo" : "Ibiza",
+    "equipamiento" : [ "envenenador", "Sensor de aparcamiento" ]
+  }, {
+    "id" : 3,
+    "matricula" : "195BJWE",
+    "marca" : "Lamborgini",
+    "modelo" : "Urus",
+    "equipamiento" : [ ]
+  }, {
+    "id" : 6,
+    "matricula" : "1122QRS",
+    "marca" : "Toyota",
+    "modelo" : "Yaris",
+    "equipamiento" : [ "Llantas de aleación", "Techo solar", "Cámara trasera" ]
+  } ]
+}

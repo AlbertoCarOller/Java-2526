@@ -372,13 +372,17 @@ public class GestorDDBBJaxb {
      *
      * @return el equipamiento o 'No hay datos'
      */
-    private String equipamientoMasRepetido() {
+    private List<String> equipamientoMasRepetido() {
         /* Obtenemos un mapa de todas las herramientas y el número de veces que aparece, Collectors.counting()
-         cuenta las veces que aparece el key */
+         cuenta las veces que aparece el key, se tiene en cuenta que haya varios max */
         return this.concesionario.getCoches().stream().flatMap((c) -> c.getEquipamiento().stream())
                 .collect(Collectors.groupingBy(s -> s, Collectors.counting())).
-                entrySet().stream().max(Map.Entry.comparingByValue())
-                // En caso de que no haya datos, se devolverá 'no hay datos'
-                .orElseGet(() -> Map.entry("No hay datos", 0L)).getKey(); // TODO: tener en cuenta que puede haber varios max
+                entrySet().stream().filter(e -> e.getValue().equals(this.concesionario.getCoches()
+                        .stream().flatMap((c) -> c.getEquipamiento().stream())
+                        .collect(Collectors.groupingBy(s -> s, Collectors.counting())).
+                        entrySet().stream().max(Map.Entry.comparingByValue())
+                        // En caso de que no haya datos, se devolverá 'no hay datos'
+                        .orElseGet(() -> Map.entry("No hay datos", 0L)).getValue()))
+                .map(Map.Entry::getKey).toList(); // TODO: comrpobar que funciona
     }
 }
