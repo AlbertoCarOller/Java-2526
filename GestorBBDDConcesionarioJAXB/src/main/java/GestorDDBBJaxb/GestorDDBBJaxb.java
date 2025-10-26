@@ -377,13 +377,18 @@ public class GestorDDBBJaxb {
         /* Obtenemos un mapa de todas las herramientas y el número de veces que aparece, Collectors.counting()
          cuenta las veces que aparece el key, se tiene en cuenta que haya varios max */
         return this.concesionario.getCoches().stream().flatMap((c) -> c.getEquipamiento().stream())
+                /* Creamos un mapa que consta del String, es decir el equipamiento concreto y con el Collectors.counting()
+                 el número de veces que aparece */
                 .collect(Collectors.groupingBy(s -> s, Collectors.counting())).
+                // Creamos entrySet para poder recorrer cada par clave-valor y posteriormente comparar con el max del otro flujo
                 entrySet().stream().filter(e -> e.getValue().equals(this.concesionario.getCoches()
                         .stream().flatMap((c) -> c.getEquipamiento().stream())
                         .collect(Collectors.groupingBy(s -> s, Collectors.counting())).
+                        // Comparamos con el .max (el máximo) mediante el valor con el Map.Entry.comparingByValue()
                         entrySet().stream().max(Map.Entry.comparingByValue())
                         // En caso de que no haya datos, se devolverá 'no hay datos'
                         .orElseGet(() -> Map.entry("No hay datos", 0L)).getValue()))
+                // Mapeo para devolver el max o el mensaje 'No hay datos'
                 .map(Map.Entry::getKey).toList();
     }
 }
