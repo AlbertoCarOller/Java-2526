@@ -70,7 +70,7 @@ public class GestorDDBBJaxb {
         } else {
             this.concesionario = deseliarizarXML();
             // Actualizamos el id, en caso de que haya al menos un coche
-            if (this.concesionario.getCoches().size() > 1) {
+            if (!this.concesionario.getCoches().isEmpty()) {
                 actualizarID();
             }
         }
