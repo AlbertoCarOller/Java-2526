@@ -2,45 +2,68 @@ package GestorDDBBJaxb;
 
 import jakarta.xml.bind.JAXBException;
 
-import java.io.IOException;
+import java.io.FileNotFoundException; // Importamos la hija
+import java.io.IOException;           // Importamos la padre
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
 public class Principal {
     public static void main(String[] args) {
-        // Inicializamos el Scanner fuera del bucle
+
         Scanner sc = new Scanner(System.in);
         GestorDDBBJaxb gestor = null;
 
+        // --- BLOQUE DE ARRANQUE ---
+        // Este try-catch es el único que, si falla, cierra el programa (con 'return'),
+        // ya que el menú no puede funcionar si el gestor no se inicializa.
         try {
-            // 1. INTENTAMOS INICIAR EL GESTOR
-            // Si esto falla (ej. no encuentra .properties), el programa no puede continuar.
             gestor = new GestorDDBBJaxb();
             System.out.println("Gestor de Concesionario iniciado correctamente.");
 
-        } catch (IOException | GestorBBDDJaxbExcepcion | JAXBException e) {
-            System.out.println("Error CRÍTICO al iniciar el gestor: " + e.getMessage());
-            // Si el gestor no se puede crear, salimos.
-            return;
+            // --- Captura Jerárquica (Arranque) ---
+        } catch (FileNotFoundException e) { // 1. Hija de IOException
+            System.out.println("Error CRÍTICO (Archivo no encontrado): No se encuentra 'config.properties' o el XML de BBDD.");
+            System.out.println("Ruta: " + e.getMessage());
+            return; // Salimos
+        } catch (IOException e) { // 2. Padre
+            System.out.println("Error CRÍTICO de E/S al iniciar.");
+            System.out.println(e.getMessage());
+            return; // Salimos
+        } catch (JAXBException e) { // 3. "Hermana" (otra rama de Exception)
+            System.out.println("Error CRÍTICO de JAXB al iniciar: Problema con las anotaciones XML o el contexto.");
+            System.out.println(e.getMessage());
+            return; // Salimos
+        } catch (GestorBBDDJaxbExcepcion e) { // 4. "Hermana" (Excepción personalizada)
+            System.out.println("Error CRÍTICO de Lógica al iniciar: " + e.getMessage());
+            return; // Salimos
+        } catch (Exception e) { // 5. "Abuelo" (Cualquier otro error inesperado)
+            System.out.println("Error CRÍTICO INESPERADO al arrancar: " + e.getMessage());
+            e.printStackTrace(); // Imprimimos el error completo
+            return; // Salimos
         }
 
-        // 2. BUCLE PRINCIPAL DEL MENÚ
+        // --- BUCLE PRINCIPAL DEL MENÚ ---
         boolean salir = false;
         while (!salir) {
             mostrarMenuPrincipal();
+
             int opcion;
             try {
-                opcion = Integer.parseInt(sc.nextLine()); // Leemos como String y parseamos para evitar errores
-            } catch (NumberFormatException e) {
+                opcion = Integer.parseInt(sc.nextLine());
+            } catch (NumberFormatException e) { // Excepción hija (de RuntimeException)
                 System.out.println("Error: Introduce un número válido.");
-                continue; // Vuelve al inicio del bucle while
+                continue; // Vuelve al inicio del while (no ejecuta el switch)
             }
 
+            // Dentro del switch, cada 'case' tiene su propio try-catch.
+            // Esto asegura que si una operación (ej. "Añadir Coche") falla,
+            // el 'catch' maneja el error y el 'while' principal continúa.
             switch (opcion) {
                 case 1:
                     // --- AÑADIR COCHE ---
                     try {
+                        // ... (código para pedir datos de coche)
                         System.out.println("--- Añadir Coche Nuevo ---");
                         System.out.print("Matrícula: ");
                         String mat = sc.nextLine();
@@ -56,27 +79,52 @@ public class Principal {
                             if (extra.equalsIgnoreCase("fin")) {
                                 break;
                             }
-                            extras.add(extra);
+                            if (!extra.isBlank()) {
+                                extras.add(extra);
+                            }
                         }
-                        // Creamos el coche (el ID se autogenera en el constructor de Coche)
+
                         Coche c = new Coche(mat, marca, mod, extras);
                         gestor.agregarCoche(c);
                         System.out.println("Coche añadido con éxito (ID: " + c.getId() + "). BBDD actualizada.");
 
-                    } catch (Exception e) {
-                        System.out.println("Error al añadir coche: " + e.getMessage());
+                        // --- Captura Jerárquica (Operación) ---
+                    } catch (GestorBBDDJaxbExcepcion e) { // 1. Específica (Lógica)
+                        System.out.println("Error al añadir coche (Lógica): " + e.getMessage());
+                    } catch (FileNotFoundException e) { // 2. Específica (Hija de IO)
+                        System.out.println("Error al añadir (Archivo no encontrado): No se pudo escribir el XML.");
+                        System.out.println(e.getMessage());
+                    } catch (IOException e) { // 3. Padre (IO)
+                        System.out.println("Error al añadir (E/S): " + e.getMessage());
+                    } catch (JAXBException e) { // 4. Específica (XML)
+                        System.out.println("Error al añadir (JAXB): No se pudo convertir a XML.");
+                        System.out.println(e.getMessage());
+                    } catch (Exception e) { // 5. Padre (General)
+                        System.out.println("Error inesperado al añadir: " + e.getMessage());
+                        e.printStackTrace();
                     }
-                    break;
+                    break; // Sale del 'switch'
+
                 case 2:
                     // --- IMPORTAR DESDE CSV ---
                     try {
                         System.out.println("Importando coches desde CSV...");
-                        int importados = gestor.importarCocheCSV();
-                        System.out.println(importados + " coches nuevos importados desde CSV.");
-                    } catch (Exception e) {
-                        System.out.println("Error al importar CSV: " + e.getMessage());
+                        gestor.importarCocheCSV();
+
+                    } catch (FileNotFoundException e) { // 1. Hija (No encuentra el CSV o el XML)
+                        System.out.println("Error al importar CSV (Archivo no encontrado): Verifique la ruta del CSV o XML.");
+                        System.out.println(e.getMessage());
+                    } catch (IOException e) { // 2. Padre
+                        System.out.println("Error al importar CSV (E/S): " + e.getMessage());
+                    } catch (JAXBException e) { // 3. Hermana
+                        System.out.println("Error al importar CSV (JAXB): No se pudo guardar en XML.");
+                        System.out.println(e.getMessage());
+                    } catch (Exception e) { // 4. Padre General
+                        System.out.println("Error inesperado al importar CSV: " + e.getMessage());
+                        e.printStackTrace();
                     }
                     break;
+
                 case 3:
                     // --- ELIMINAR COCHE ---
                     try {
@@ -85,59 +133,95 @@ public class Principal {
                         String mat = sc.nextLine();
                         gestor.eliminarCoche(mat);
                         System.out.println("Coche con matrícula " + mat + " eliminado.");
-                    } catch (Exception e) {
-                        System.out.println("Error al eliminar coche: " + e.getMessage());
+
+                    } catch (GestorBBDDJaxbExcepcion e) { // 1. Lógica (ej. "No se ha encontrado el coche")
+                        System.out.println("Error al eliminar coche (Lógica): " + e.getMessage());
+                    } catch (FileNotFoundException e) { // 2. Hija
+                        System.out.println("Error al eliminar (Archivo no encontrado): No se pudo guardar el XML.");
+                        System.out.println(e.getMessage());
+                    } catch (IOException e) { // 3. Padre
+                        System.out.println("Error al eliminar (E/S): No se pudo guardar el XML.");
+                        System.out.println(e.getMessage());
+                    } catch (JAXBException e) { // 4. Hermana
+                        System.out.println("Error al eliminar (JAXB): No se pudo guardar el XML.");
+                        System.out.println(e.getMessage());
+                    } catch (Exception e) { // 5. General
+                        System.out.println("Error inesperado al eliminar: " + e.getMessage());
+                        e.printStackTrace();
                     }
                     break;
+
                 case 4:
                     // --- SUBMENÚ MODIFICAR ---
                     manejarSubMenuModificar(gestor, sc);
                     break;
+
                 case 5:
                     // --- ORDENAR POR MATRÍCULA ---
                     try {
                         gestor.ordenarPorMatricula();
                         System.out.println("Concesionario ordenado por matrícula en el XML.");
-                    } catch (Exception e) {
-                        System.out.println("Error al ordenar: " + e.getMessage());
+
+                    } catch (FileNotFoundException e) { // 1. Hija
+                        System.out.println("Error al ordenar (Archivo no encontrado): No se pudo guardar el XML.");
+                        System.out.println(e.getMessage());
+                    } catch (IOException e) { // 2. Padre
+                        System.out.println("Error al ordenar (E/S): " + e.getMessage());
+                    } catch (JAXBException e) { // 3. Hermana
+                        System.out.println("Error al ordenar (JAXB): " + e.getMessage());
+                    } catch (Exception e) { // 4. General
+                        System.out.println("Error inesperado al ordenar: " + e.getMessage());
+                        e.printStackTrace();
                     }
                     break;
+
                 case 6:
                     // --- SUBMENÚ EXPORTAR JSON ---
                     manejarSubMenuExportarJSON(gestor, sc);
                     break;
+
                 case 7:
                     // --- SUBMENÚ IMPORTAR JSON ---
                     manejarSubMenuImportarJSON(gestor, sc);
                     break;
+
                 case 8:
                     // --- GENERAR RESUMEN ---
                     try {
                         gestor.realizarResumen();
                         System.out.println("Resumen 'informe_concesionario.txt' generado/actualizado.");
-                    } catch (Exception e) {
-                        System.out.println("Error al generar el resumen: " + e.getMessage());
+
+                    } catch (FileNotFoundException e) { // 1. Hija
+                        System.out.println("Error al generar resumen (Ruta no válida): " + e.getMessage());
+                    } catch (IOException e) { // 2. Padre
+                        System.out.println("Error al generar el resumen (E/S): " + e.getMessage());
+                    } catch (Exception e) { // 3. General
+                        System.out.println("Error inesperado al generar resumen: " + e.getMessage());
+                        e.printStackTrace();
                     }
                     break;
+
                 case 0:
                     salir = true;
                     System.out.println("Saliendo del programa...");
                     break;
+
                 default:
                     System.out.println("Opción no válida. Introduce un número del 0 al 8.");
             }
-            // Pequeña pausa
+
             if (!salir) {
                 System.out.println("\n(Pulsa ENTER para continuar...)");
                 sc.nextLine();
             }
         }
-        // Cerramos el Scanner al salir del bucle
+
         sc.close();
     }
 
     /**
-     * Muestra el menú principal en la consola.
+     * Esta función va a imprimir poe pantalla las opciones
+     * del menú principal
      */
     private static void mostrarMenuPrincipal() {
         System.out.println("\n--- GESTOR DE CONCESIONARIO (JAXB) ---");
@@ -153,8 +237,13 @@ public class Principal {
         System.out.print("Elige una opción: ");
     }
 
+
     /**
-     * Gestiona el submenú para modificar campos de un coche.
+     * Esta función va a mostrar un submenú para modificar
+     * el campo de un coche, teniendo en cuentas las excepciones
+     * correspondientes
+     * @param gestor el gestor
+     * @param sc el Scanner
      */
     private static void manejarSubMenuModificar(GestorDDBBJaxb gestor, Scanner sc) {
         boolean volver = false;
@@ -166,6 +255,7 @@ public class Principal {
             System.out.println("0. Volver al menú principal");
             System.out.print("Elige una opción: ");
 
+            // Controlamos que la opción sea un número
             int opcionMod;
             try {
                 opcionMod = Integer.parseInt(sc.nextLine());
@@ -174,7 +264,7 @@ public class Principal {
                 continue;
             }
 
-            String mat; // Pedimos la matrícula dentro de cada caso
+            String mat;
             try {
                 switch (opcionMod) {
                     case 1:
@@ -197,7 +287,7 @@ public class Principal {
                         System.out.print("Matrícula del coche a modificar: ");
                         mat = sc.nextLine();
                         System.out.print("Índice del extra a modificar (empezando en 1): ");
-                        int indice = Integer.parseInt(sc.nextLine()) - 1; // Convertimos a índice 0
+                        int indice = Integer.parseInt(sc.nextLine()) - 1;
                         System.out.print("Nuevo valor del extra: ");
                         String extra = sc.nextLine();
                         gestor.modificarExtra(mat, extra, indice);
@@ -209,18 +299,45 @@ public class Principal {
                     default:
                         System.out.println("Opción no válida.");
                 }
+
+                // --- Captura Jerárquica (Submenú Modificar) ---
+                // 1. Hijas (Runtime) - Específicas de la lógica del menú
+            } catch (NumberFormatException e) {
+                System.out.println("Error: El índice debe ser un número.");
+            } catch (IndexOutOfBoundsException e) {
+                System.out.println("Error: El índice del extra no existe.");
+                // 2. Específica (Lógica)
+            } catch (GestorBBDDJaxbExcepcion e) {
+                System.out.println("Error al modificar (Lógica): " + e.getMessage());
+                // 3. Hija (IO)
+            } catch (FileNotFoundException e) {
+                System.out.println("Error al modificar (Archivo no encontrado): No se pudo guardar el XML.");
+                System.out.println(e.getMessage());
+                // 4. Padre (IO)
+            } catch (IOException e) {
+                System.out.println("Error al modificar (E/S): " + e.getMessage());
+                // 5. Hermana (XML)
+            } catch (JAXBException e) {
+                System.out.println("Error al modificar (JAXB): " + e.getMessage());
+                // 6. General (Padre)
             } catch (Exception e) {
-                System.out.println("Error al modificar: " + e.getMessage());
+                System.out.println("Error inesperado al modificar: " + e.getMessage());
+                e.printStackTrace();
             }
         }
     }
 
     /**
-     * Gestiona el submenú para exportar a JSON.
+     * Esta función va a mostrar el submenú para exportar a JSON,
+     * controlando las excepciones y llamando a las funciones
+     * correspondientes
+     * @param gestor el Gestor
+     * @param sc el Scanner
      */
     private static void manejarSubMenuExportarJSON(GestorDDBBJaxb gestor, Scanner sc) {
         boolean volver = false;
         while (!volver) {
+            // ... (código del menú) ...
             System.out.println("\n--- Submenú Exportar a JSON ---");
             System.out.println("1. Exportar Concesionario Completo");
             System.out.println("2. Exportar un Coche Específico (por matrícula)");
@@ -253,18 +370,31 @@ public class Principal {
                     default:
                         System.out.println("Opción no válida.");
                 }
-            } catch (Exception e) {
-                System.out.println("Error al exportar a JSON: " + e.getMessage());
+
+                // --- Captura Jerárquica ---
+            } catch (GestorBBDDJaxbExcepcion e) { // 1. Lógica
+                System.out.println("Error al exportar a JSON (Lógica): " + e.getMessage());
+            } catch (FileNotFoundException e) { // 2. Hija (IO)
+                System.out.println("Error al exportar a JSON (Ruta no válida): " + e.getMessage());
+            } catch (IOException e) { // 3. Padre (IO)
+                System.out.println("Error al exportar a JSON (E/S): " + e.getMessage());
+            } catch (Exception e) { // 4. General
+                System.out.println("Error inesperado al exportar: " + e.getMessage());
+                e.printStackTrace();
             }
         }
     }
 
     /**
-     * Gestiona el submenú para importar desde JSON.
+     * Esta función va a mostrar las opciones de la importación con JSON,
+     * va a controlar las excepciones, llamando a las funciones necesarias
+     * @param gestor el Gestor
+     * @param sc el Scanner
      */
     private static void manejarSubMenuImportarJSON(GestorDDBBJaxb gestor, Scanner sc) {
         boolean volver = false;
         while (!volver) {
+            // ... (código del menú) ...
             System.out.println("\n--- Submenú Importar desde JSON ---");
             System.out.println("1. Importar Concesionario Completo (SOBRESCRiBE BBDD)");
             System.out.println("2. Importar y Añadir un solo Coche");
@@ -295,8 +425,21 @@ public class Principal {
                     default:
                         System.out.println("Opción no válida.");
                 }
-            } catch (Exception e) {
-                System.out.println("Error al importar desde JSON: " + e.getMessage());
+
+                // --- Captura Jerárquica ---
+            } catch (GestorBBDDJaxbExcepcion e) { // 1. Lógica
+                System.out.println("Error al importar desde JSON (Lógica): " + e.getMessage());
+            } catch (FileNotFoundException e) { // 2. Hija (IO)
+                System.out.println("Error al importar (Archivo no encontrado): No se encuentra el JSON o el XML de destino.");
+                System.out.println(e.getMessage());
+            } catch (IOException e) { // 3. Padre (IO)
+                System.out.println("Error al importar desde JSON (E/S): " + e.getMessage());
+            } catch (JAXBException e) { // 4. Hermana (XML)
+                System.out.println("Error al importar desde JSON (JAXB): No se pudo guardar el XML.");
+                System.out.println(e.getMessage());
+            } catch (Exception e) { // 5. General
+                System.out.println("Error inesperado al importar: " + e.getMessage());
+                e.printStackTrace();
             }
         }
     }

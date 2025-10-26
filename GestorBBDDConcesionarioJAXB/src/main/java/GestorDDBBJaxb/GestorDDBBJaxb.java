@@ -132,8 +132,7 @@ public class GestorDDBBJaxb {
      *
      * @throws IOException
      */
-    public int importarCocheCSV() throws IOException, JAXBException {
-        int contadorCochesAgregados = 0;
+    public void importarCocheCSV() throws IOException, JAXBException, GestorBBDDJaxbExcepcion {
         // Creamos el flujo de lectura para el CSV
         try (BufferedReader leer = new BufferedReader(new FileReader(prop.getProperty("path.csv")))) {
             // La línea que ha leído
@@ -146,20 +145,24 @@ public class GestorDDBBJaxb {
                 if (contador != 0) {
                     // Separamos los campos del coche
                     String[] coche = linea.split(";");
-                    // Comprobamos si el coche tiene equipamientos
-                    if (coche.length == 4) {
-                        // Obtenemos los extras de cada coche
-                        String[] extras = coche[3].split("\\|");
-                        // Añadimos un coche con equipamientos
-                        this.concesionario.getCoches().add(new Coche(coche[0].trim(),
-                                coche[1].trim(), coche[2].trim(), Arrays.stream(extras)
-                                .map(String::trim).collect(Collectors.toCollection(ArrayList::new)))); /* -> Hacemos un flujo
+                    // Comprobamos que esté bien formado el coche
+                    if (coche.length == 3 || coche.length == 4) {
+                        // Comprobamos que no exista la matrícula para llamar al constructor en este caso y que el id aumente correctamente
+                        if (!existeMatricula(coche[0])) {
+                            // Comprobamos si el coche tiene equipamientos
+                            if (coche.length == 4) {
+                                // Obtenemos los extras de cada coche
+                                String[] extras = coche[3].split("\\|");
+                                // Añadimos un coche con equipamientos
+                                this.concesionario.getCoches().add(new Coche(coche[0].trim(),
+                                        coche[1].trim(), coche[2].trim(), Arrays.stream(extras)
+                                        .map(String::trim).collect(Collectors.toCollection(ArrayList::new)))); /* -> Hacemos un flujo
                                  para hacer trim por cada extra */
-                        // Confirmamos que el coche tenga todos los campos obligatorios para poder formarlo
-                        contadorCochesAgregados++;
-                    } else if (coche.length == 3) {
-                        this.concesionario.getCoches().add(new Coche(coche[0].trim(), coche[1].trim(), coche[2].trim(), new ArrayList<>()));
-                        contadorCochesAgregados++;
+                                // Confirmamos que el coche tenga todos los campos obligatorios para poder formarlo
+                            } else {
+                                this.concesionario.getCoches().add(new Coche(coche[0].trim(), coche[1].trim(), coche[2].trim(), new ArrayList<>()));
+                            }
+                        }
                     }
                 }
                 contador++;
@@ -167,7 +170,19 @@ public class GestorDDBBJaxb {
         }
         // Volcamos los cambios
         importarParaXML();
-        return contadorCochesAgregados;
+    }
+
+    /**
+     * Esta función comprueba que exista o no la matrícula, es decir el coche
+     * en la bbdd, aunque tenga un Set y no se puedan repetir las matrículas
+     * esta función es necesaria para el recuento de id dentro de la función
+     * para importar el CSV
+     *
+     * @param matricula la matrícula a comprobar
+     * @return
+     */
+    private boolean existeMatricula(String matricula) {
+        return this.concesionario.getCoches().stream().anyMatch(coche -> coche.getMatricula().equals(matricula));
     }
 
     /**
@@ -225,6 +240,8 @@ public class GestorDDBBJaxb {
     public void eliminarCoche(String matricula) throws GestorBBDDJaxbExcepcion, JAXBException, IOException {
         // Eliminamos el coche
         this.concesionario.getCoches().remove(obtenerCoche(matricula));
+        // Actualizamos el id
+        actualizarID();
         // Volcamos los datos
         importarParaXML();
     }
@@ -237,6 +254,9 @@ public class GestorDDBBJaxb {
      * @throws GestorBBDDJaxbExcepcion
      */
     public void modificarMarca(String matricula, String marca) throws GestorBBDDJaxbExcepcion, JAXBException, IOException {
+        if (marca.isBlank()) {
+            throw new GestorBBDDJaxbExcepcion("Marca inválida");
+        }
         obtenerCoche(matricula).setMarca(marca); // -> Modificamos la marca
         // Volcamos los datos
         importarParaXML();
@@ -250,6 +270,9 @@ public class GestorDDBBJaxb {
      * @throws GestorBBDDJaxbExcepcion
      */
     public void modificarModelo(String matricula, String modelo) throws GestorBBDDJaxbExcepcion, JAXBException, IOException {
+        if (modelo.isBlank()) {
+            throw new GestorBBDDJaxbExcepcion("Modelo inválido");
+        }
         obtenerCoche(matricula).setModelo(modelo); // -> Modificamos el modelo
         // Volcamos los datos
         importarParaXML();
@@ -265,7 +288,17 @@ public class GestorDDBBJaxb {
      * @throws GestorBBDDJaxbExcepcion
      */
     public void modificarExtra(String matricula, String extra, int indiceExtra) throws GestorBBDDJaxbExcepcion, JAXBException, IOException {
-        obtenerCoche(matricula).getEquipamiento().set(indiceExtra, extra); // -> Modificamos un extra concreto
+        if (extra.isBlank()) {
+            throw new GestorBBDDJaxbExcepcion("El extra es inválido");
+        }
+        // Obtenemos el coche
+        Coche co = obtenerCoche(matricula);
+        // Comprobamos que el índice exista
+        if (indiceExtra < 0 || indiceExtra >= co.getEquipamiento().size()) {
+            throw new GestorBBDDJaxbExcepcion("Índice inválido");
+        }
+        // Modificamos el extra
+        co.getEquipamiento().set(indiceExtra, extra);
         // Volcamos los datos
         importarParaXML();
     }
@@ -383,11 +416,11 @@ public class GestorDDBBJaxb {
                  el número de veces que aparece */
                 .collect(Collectors.groupingBy(s -> s, Collectors.counting())).
                 // Creamos entrySet para poder recorrer cada par clave-valor y posteriormente comparar con el max del otro flujo
-                entrySet().stream().filter(e -> e.getValue().equals(this.concesionario.getCoches()
+                        entrySet().stream().filter(e -> e.getValue().equals(this.concesionario.getCoches()
                         .stream().flatMap((c) -> c.getEquipamiento().stream())
                         .collect(Collectors.groupingBy(s -> s, Collectors.counting())).
                         // Comparamos con el .max (el máximo) mediante el valor con el Map.Entry.comparingByValue()
-                        entrySet().stream().max(Map.Entry.comparingByValue())
+                                entrySet().stream().max(Map.Entry.comparingByValue())
                         // En caso de que no haya datos, se devolverá 'no hay datos'
                         .orElseGet(() -> Map.entry("", 0L)).getValue()))
                 // Mapeo para devolver el max o el mensaje 'No hay datos'

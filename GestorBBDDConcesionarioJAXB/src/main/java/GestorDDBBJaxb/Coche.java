@@ -36,7 +36,10 @@ public class Coche {
     public Coche(@JsonProperty("matricula") String matricula,
                  @JsonProperty("marca")  String marca,
                  @JsonProperty("modelo") String modelo,
-                 @JsonProperty("equipamiento") List<String> equipamiento) {
+                 @JsonProperty("equipamiento") List<String> equipamiento) throws GestorBBDDJaxbExcepcion {
+        if (matricula.isBlank() || marca.isBlank() || modelo.isBlank()) {
+            throw new GestorBBDDJaxbExcepcion("No se ha podido crear el coche, los datos son inválidos");
+        }
         this.matricula = matricula;
         this.marca = marca;
         this.modelo = modelo;
