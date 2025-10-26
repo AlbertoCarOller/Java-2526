@@ -294,7 +294,7 @@ public class GestorDDBBJaxb {
 
     /**
      * Esta función va a recalcular el id que va a empezar a tener
-     * los próximos cohes que se vayan añadiendo a la base de datos
+     * los próximos coches que se vayan añadiendo a la base de datos
      * teniendo en cuenta que al haber una base de datos o quere importar
      * el JSON el id debe continuar con el número posterior del id más
      * grande
