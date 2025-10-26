@@ -387,7 +387,7 @@ public class GestorDDBBJaxb {
                         // Comparamos con el .max (el máximo) mediante el valor con el Map.Entry.comparingByValue()
                         entrySet().stream().max(Map.Entry.comparingByValue())
                         // En caso de que no haya datos, se devolverá 'no hay datos'
-                        .orElseGet(() -> Map.entry("No hay datos", 0L)).getValue()))
+                        .orElseGet(() -> Map.entry("", 0L)).getValue()))
                 // Mapeo para devolver el max o el mensaje 'No hay datos'
                 .map(Map.Entry::getKey).toList();
     }
