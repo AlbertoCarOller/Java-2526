@@ -69,8 +69,10 @@ public class GestorDDBBJaxb {
             // En caso de que ya exista un XML, se carga en el objeto
         } else {
             this.concesionario = deseliarizarXML();
-            // Actualizamos el id
-            actualizarID();
+            // Actualizamos el id, en caso de que haya al menos un coche
+            if (this.concesionario.getCoches().size() > 1) {
+                actualizarID();
+            }
         }
     }
 
@@ -295,7 +297,7 @@ public class GestorDDBBJaxb {
     /**
      * Esta función va a recalcular el id que va a empezar a tener
      * los próximos coches que se vayan añadiendo a la base de datos
-     * teniendo en cuenta que al haber una base de datos o quere importar
+     * teniendo en cuenta que al haber una base de datos o querer importar
      * el JSON el id debe continuar con el número posterior del id más
      * grande
      */
