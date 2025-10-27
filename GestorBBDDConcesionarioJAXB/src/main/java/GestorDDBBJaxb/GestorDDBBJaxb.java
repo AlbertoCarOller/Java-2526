@@ -406,7 +406,7 @@ public class GestorDDBBJaxb {
      * contando así con Collectors.counting() cuantas veces aparecen, en caso de que no haya ninguna
      * devolvemos un mensaje diciendo que no hay datos, SE TIENE EN CUENTA QUE HAYA VARIOS MAX
      *
-     * @return el equipamiento o 'No hay datos'
+     * @return el equipamiento
      */
     private List<String> equipamientoMasRepetido() {
         /* Obtenemos un mapa de todas las herramientas y el número de veces que aparece, Collectors.counting()
