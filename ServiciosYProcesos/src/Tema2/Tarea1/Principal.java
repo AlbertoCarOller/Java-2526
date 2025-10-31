@@ -7,7 +7,7 @@ public class Principal {
             NumeroAzar numeroAzar = new NumeroAzar();
             numeroAzar.start();
             numeroAzar.join(); /* -> Necesario para que el main espere a que 'NumeroAzar' termine, es decir dé el número,
-             el join hace que el hilo padre, en este caso el main, espere al hilo hijo*/
+             el join hace que el hilo padre, en este caso el main, espere a que termine el hilo hijo*/
             int numeroParaAdivinar = numeroAzar.numeroAletorio;
             // Generamos varios hilos que van a intentar buscar el hilo
             Adivinador adivinador = new Adivinador(numeroParaAdivinar);
