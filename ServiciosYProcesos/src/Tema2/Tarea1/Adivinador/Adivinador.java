@@ -1,4 +1,4 @@
-package Tema2.Tarea1;
+package Tema2.Tarea1.Adivinador;
 
 public class Adivinador extends Thread {
     protected  int numABuscar;
