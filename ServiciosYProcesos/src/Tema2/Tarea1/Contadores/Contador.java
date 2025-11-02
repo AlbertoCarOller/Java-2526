@@ -4,7 +4,7 @@ class Contadores {
     // Contadores
     private long cont1 = 0;
     private long cont2 = 0;
-    // Llaves, esto es importante, los synchronized necesitan un objeto que actuen como llave
+    // Llaves, esto es importante, los synchronized necesitan un objeto que actúen como llave
     private final Object lock1 = new Object();
     private final Object lock2 = new Object();
 

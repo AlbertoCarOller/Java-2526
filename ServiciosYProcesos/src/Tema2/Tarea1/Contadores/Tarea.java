@@ -10,11 +10,11 @@ public class Tarea extends Thread {
     @Override
     public void run() {
         // Incrementamos primero el primer contador
-        for (int i = 0; i < 100000000; i++) {
+        for (int i = 0; i < 10000000; i++) {
             contadores.incrementar1();
         }
         // Incrementamos el segundo contador
-        for (int i = 0; i < 100000000; i++) {
+        for (int i = 0; i < 10000000; i++) {
             contadores.incrementar2();
         }
     }
