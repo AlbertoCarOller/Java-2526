@@ -55,15 +55,15 @@ public class EjemploJDBC {
                     break;
                 case 4:
                     System.out.println("\n--- Demo 4: Ejecución por Lotes (Batch) ---");
-                    //demoBatchInsert();
+                    demoBatchInsert();
                     break;
                 case 5:
                     System.out.println("\n--- Demo 5: Gestión de Transacciones ---");
-                    //demoTransaccion();
+                    demoTransaccion();
                     break;
                 case 6:
                     System.out.println("\n--- Demo 6: CallableStatement (Stored Procedure) ---");
-                    //demoCallableStatement();
+                    demoCallableStatement();
                     break;
                 case 0:
                     System.out.println("\nSaliendo...");
@@ -76,6 +76,112 @@ public class EjemploJDBC {
 
         scanner.close();
         System.out.println("\n--- Fin de las demostraciones ---");
+    }
+
+    private static void demoCallableStatement() {
+        String sqlCall = "{CALL sp_get_usuario_info(?, ?, ?)}";
+        int idBuscado = 1;
+        try(Connection connection = DriverManager.getConnection(URL, USER, PASS);
+            CallableStatement callableStatement = connection.prepareCall(sqlCall)) {
+
+            callableStatement.setInt(1, idBuscado);
+            callableStatement.registerOutParameter(2, Types.VARCHAR);
+            callableStatement.registerOutParameter(3, Types.VARCHAR);
+
+            callableStatement.execute();
+
+            String nombre = callableStatement.getString(2);
+            String email = callableStatement.getString(3);
+
+            System.out.println("Datos recuperados por el SP");
+            System.out.println("Nombre: " + nombre);
+            System.out.println("Email: " + email);
+        } catch (SQLException e) {
+            System.err.println(e.getMessage());
+        }
+    }
+
+    private static void demoTransaccion() {
+        String sqlRestaA = "UPDATE cuentas SET saldo = saldo - 100 WHERE id = 'A'";
+        //String sqlSumarB = "UPDATE cuentas SET saldoInexistente = saldo + 100 WHERE id = 'B'";
+        String sqlSumarB = "UPDATE cuentas SET saldo = saldo + 100 WHERE id = 'B'";
+
+        // Al hacer una transacción la conexión debe de ir fuera del try
+        Connection conn = null;
+        try {
+            conn = DriverManager.getConnection(URL, USER, PASS);
+            conn.setAutoCommit(false);
+
+            try(Statement statement = conn.createStatement()) {
+                statement.executeUpdate(sqlRestaA);
+                statement.executeUpdate(sqlSumarB);
+            }
+
+            conn.commit();
+        } catch (SQLException e) {
+            if (conn != null) {
+                try {
+                    conn.rollback(); // En caso de que haya algún problema,no se completa la trasancción
+                } catch (SQLException ex) {
+                    System.err.println(e.getMessage());
+                }
+            }
+            // Se crea un bloque finally porque no es un try.with-resources y debe cerrarse de alguna forma los recursos
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true); // Volvemos a poner auto-commit a true
+                    conn.close(); // Cerramos la conexión
+                } catch (SQLException e) {
+                    System.err.println(e.getMessage());
+                }
+            }
+        }
+    }
+
+    private static void demoBatchInsert() {
+        String sql = "INSERT INTO usuarios(nombre, email) VALUES (?, ?)";
+        Connection conn = null;
+        try {
+            conn = DriverManager.getConnection(URL, USER, PASS);
+            try(PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                System.out.println("Añadiendo al lote...");
+                for (int i = 0; i < 5; i++) {
+                    pstmt.setString(1, "Usuario Batch " + i);
+                    pstmt.setString(2, "batch" + i + "@email.com");
+                    // Añadimos sentencias la Batch
+                    pstmt.addBatch(); // Añade la sentencia al lote
+                }
+                // Cuando se hace un Batch se debe de desactivar el auto-commit
+                conn.setAutoCommit(false);
+
+                // 3. Ejecutamos el lote
+                int[] resultados = pstmt.executeBatch();
+                conn.commit();
+                System.out.println("Lote ejecutado. Resultados (filas afectadas por sentencia):");
+                for (int res : resultados) {
+                    System.out.print(res + " ");
+                }
+                System.out.println();
+            }
+        } catch (SQLException e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ex) {
+                    System.out.println(ex.getMessage());
+                }
+            }
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException e) {
+                    System.out.println(e.getMessage());
+                }
+            }
+        }
     }
 
     private static void demoSelectConMapeo() {
