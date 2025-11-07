@@ -13,147 +13,165 @@ package Tema2.Tarea1.TareaPuente;
  * entre 40 y 120 kg.
  *
  */
+
 import java.util.Random;
 
 class Puente {  // Estado, objeto compartido entre los hilos
 
-  private static final int PESO_MAXIMO = 200;
-  private static final int MAX_PERSONAS = 3;
-  private int peso = 0;
-  private int numPersonas = 0;
+    private static final int PESO_MAXIMO = 200;
+    private static final int MAX_PERSONAS = 3;
+    private int peso = 0;
+    private int numPersonas = 0;
 
-  synchronized public int getPeso() {
-    return peso;
-  }
-
-  synchronized public int getNumPersonas() {
-    return numPersonas;
-  }
-
-
-  synchronized public boolean autorizacionPaso(Persona persona) {
-
-    boolean result;
-
-    if (this.peso + persona.getPeso() <= Puente.PESO_MAXIMO && this.numPersonas < Puente.MAX_PERSONAS) {
-      this.numPersonas++;
-      this.peso += persona.getPeso();
-      result = true;
-    } else {
-      result = false;
+    synchronized public int getPeso() {
+        return peso;
     }
-    return result;
-  }
 
-  synchronized public void terminaPaso(Persona persona) {
-    this.peso -= persona.getPeso();
-    this.numPersonas--;
-  }
+    synchronized public int getNumPersonas() {
+        return numPersonas;
+    }
+
+    /**
+     * Esta función básicamente devolverá la autorización para ver una
+     * persona si puede cruzar o por lo contrario debe de esperar
+     * @param persona la persona a comprobar
+     * @return boolean, la autorización
+     */
+    synchronized public boolean autorizacionPaso(Persona persona) {
+
+        boolean result;
+
+        // Se comprueba que el peso del peunte y la persona no supere el máximo y que no esté completamente ocupado por el número de personas
+        if (this.peso + persona.getPeso() <= Puente.PESO_MAXIMO && this.numPersonas < Puente.MAX_PERSONAS) {
+            this.numPersonas++;
+            this.peso += persona.getPeso();
+            result = true;
+        } else {
+            result = false;
+        }
+        return result;
+    }
+
+    /**
+     * Esta función quitará el peso de la persona del puente
+     * y restará el número de personas que había en el puente
+     * @param persona la persona, se utiliza pa quitar el puente el peso concreto
+     */
+    synchronized public void terminaPaso(Persona persona) {
+        this.peso -= persona.getPeso();
+        this.numPersonas--;
+    }
 }
 
 class Persona implements Runnable {
-  private final Puente puente;
+    private final Puente puente;
 
-  private final String idPersona;
-  private final int peso;
-  private final int tMinPaso, tMaxPaso;
+    private final String idPersona;
+    private final int peso;
+    private final int tMinPaso, tMaxPaso;
 
-  public int getPeso() {
-    return peso;
-  }
+    public int getPeso() {
+        return peso;
+    }
 
-  Persona(Puente puente, int peso, int tMinPaso, int tMaxPaso, String idP) {
-    this.puente = puente;
-    this.peso = peso;
-    this.tMinPaso = tMinPaso;
-    this.tMaxPaso = tMaxPaso;
-    this.idPersona = idP;
-  }
+    Persona(Puente puente, int peso, int tMinPaso, int tMaxPaso, String idP) {
+        this.puente = puente;
+        this.peso = peso;
+        this.tMinPaso = tMinPaso;
+        this.tMaxPaso = tMaxPaso;
+        this.idPersona = idP;
+    }
 
-  @Override
-  public void run() {
+    @Override
+    public void run() {
 
-    System.out.printf("- %s de %d kg quiere cruzar, en puente %d kg, %d persona%s.\n",
-            this.idPersona, this.peso, puente.getPeso(), puente.getNumPersonas(), puente.getNumPersonas() != 1 ? "s" : "");
+        System.out.printf("- %s de %d kg quiere cruzar, en puente %d kg, %d persona%s.\n",
+                this.idPersona, this.peso, puente.getPeso(), puente.getNumPersonas(), puente.getNumPersonas() != 1 ? "s" : "");
 
-    // Espera para conseguir autorización
-    boolean autorizado = false;
-    while (!autorizado) {
-      synchronized (this.puente) {
-        autorizado = this.puente.autorizacionPaso(this);
-        if (!autorizado) {
-          try {
-            System.out.printf("# %s debe esperar.\n", this.idPersona);
-            this.puente.wait();
-          } catch (InterruptedException ex) {
-            System.out.printf("Interrupción mientras %s espera para cruzar.\n", this.idPersona);
-          }
+        // Espera para conseguir autorización
+        boolean autorizado = false;
+        // Mientras que no esté autorizado, intenta llamar a su autorización para ver cuando tiene
+        while (!autorizado) {
+            synchronized (this.puente) {
+                autorizado = this.puente.autorizacionPaso(this);
+                // Si no está autorizado espera
+                if (!autorizado) {
+                    try {
+                        System.out.printf("# %s debe esperar.\n", this.idPersona);
+                        this.puente.wait();
+                    } catch (InterruptedException ex) {
+                        System.out.printf("Interrupción mientras %s espera para cruzar.\n", this.idPersona);
+                    }
+                }
+            }
         }
-      }
-    }
 
-    System.out.printf("> %s con peso %d puede cruzar, puente soporta peso %d, con %d personas.\n",
-            this.idPersona, this.getPeso(), this.puente.getPeso(), puente.getNumPersonas(), this.puente.getNumPersonas() != 1 ? "s" : "");
+        System.out.printf("> %s con peso %d puede cruzar, puente soporta peso %d, con %d personas.\n",
+                this.idPersona, this.getPeso(), this.puente.getPeso(), puente.getNumPersonas(), this.puente.getNumPersonas() != 1 ? "s" : "");
 
-    // Pasa al puente, y tarda un tiempo en cruzar
-    Random r = new Random();
-    int tiempoPaso = this.tMinPaso + r.nextInt(this.tMaxPaso - this.tMinPaso + 1);
-    try {
-      System.out.printf("%s va a tardar tiempo %d en cruzar.\n", this.idPersona, tiempoPaso);
-      Thread.sleep(1000*tiempoPaso);
-    } catch (InterruptedException ex) {
-      System.out.printf("Interrupción mientras %s pasa.\n", this.idPersona);
-    }
+        // Pasa al puente, y tarda un tiempo en cruzar
+        Random r = new Random();
+        int tiempoPaso = this.tMinPaso + r.nextInt(this.tMaxPaso - this.tMinPaso + 1);
+        try {
+            System.out.printf("%s va a tardar tiempo %d en cruzar.\n", this.idPersona, tiempoPaso);
+            Thread.sleep(1000 * tiempoPaso);
+        } catch (InterruptedException ex) {
+            System.out.printf("Interrupción mientras %s pasa.\n", this.idPersona);
+        }
 
-    // Sale del puente
-    synchronized (this.puente) {
-      this.puente.terminaPaso(this);
-      System.out.printf("< %s sale del puente, puente soporta peso %d, %d persona%s.\n",
-              this.idPersona, this.puente.getPeso(), this.puente.getNumPersonas(), this.puente.getNumPersonas() != 1 ? "s" : "");
-      puente.notifyAll();
+        // Sale del puente
+        synchronized (this.puente) {
+            this.puente.terminaPaso(this);
+            System.out.printf("< %s sale del puente, puente soporta peso %d, %d persona%s.\n",
+                    this.idPersona, this.puente.getPeso(), this.puente.getNumPersonas(), this.puente.getNumPersonas() != 1 ? "s" : "");
+            // Una vez que una persona ha salido del puente, notifica a las demás, el más rápido entrará
+            puente.notifyAll(); /* Se necesita el notifyAll() para avisar a todas las personas disponibles.
+       podría haber una perdida de llamada, ya que si un hilo que pesa demasiado y no puede entrar
+       se queda esperando a que salga alguien del puente perso no hay nadie en el puente, puesto que la última
+        que salió le dió el aviso a él, entonces ya no hay más avisos, dormirán para siempre*/
+        }
     }
-  }
 }
 
 public class PasoPorPuente {
 
-  public static void main(String[] args) {
+    public static void main(String[] args) {
 
-    final Puente puente = new Puente();
+        final Puente puente = new Puente();
 
-    int tMinParaLlegadaPersona = 1;
-    int tMaxParaLlegadaPersona = 30;
-    int tMinPaso = 10;
-    int tMaxPaso = 50;
-    int minPesoPersona = 40;
-    int maxPesoPersona = 120;
+        int tMinParaLlegadaPersona = 1;
+        int tMaxParaLlegadaPersona = 30;
+        int tMinPaso = 10;
+        int tMaxPaso = 50;
+        int minPesoPersona = 40;
+        int maxPesoPersona = 120;
 
-    System.out.println(">>>>>>>>>>>> Comienza simulación.");
-    Random r = new Random();
-    int idPersona = 1;
+        System.out.println(">>>>>>>>>>>> Comienza simulación.");
+        Random r = new Random();
+        int idPersona = 1;
 
-    while (true) {
+        while (true) {
 
-      int tParaLlegadaPersona = tMinParaLlegadaPersona + r.nextInt(
-              tMaxParaLlegadaPersona - tMinParaLlegadaPersona + 1);
-      int pesoPersona = minPesoPersona + r.nextInt(
-              maxPesoPersona - minPesoPersona + 1);
+            int tParaLlegadaPersona = tMinParaLlegadaPersona + r.nextInt(
+                    tMaxParaLlegadaPersona - tMinParaLlegadaPersona + 1);
+            int pesoPersona = minPesoPersona + r.nextInt(
+                    maxPesoPersona - minPesoPersona + 1);
 
-      System.out.printf("Siguiente persona llega en %d segundos.\n", tParaLlegadaPersona);
+            System.out.printf("Siguiente persona llega en %d segundos.\n", tParaLlegadaPersona);
 
-      try {
-        Thread.sleep(1000*tParaLlegadaPersona);
-      } catch (InterruptedException ex) {
-        System.out.printf("Interrumpido proceso principal");
-      }
+            try {
+                Thread.sleep(1000 * tParaLlegadaPersona);
+            } catch (InterruptedException ex) {
+                System.out.printf("Interrumpido proceso principal");
+            }
 
-      Thread hiloPersona = new Thread(new Persona(puente, pesoPersona, tMinPaso, tMaxPaso, "P"+idPersona));
-      hiloPersona.start();
+            Thread hiloPersona = new Thread(new Persona(puente, pesoPersona, tMinPaso, tMaxPaso, "P" + idPersona));
+            hiloPersona.start();
 
-      idPersona++;
+            idPersona++;
+
+        }
 
     }
-
-  }
 
 }
