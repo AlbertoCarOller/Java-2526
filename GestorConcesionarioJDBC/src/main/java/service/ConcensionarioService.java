@@ -82,7 +82,7 @@ public class ConcensionarioService {
                     "    matricula       VARCHAR(10) PRIMARY KEY," +
                     "    marca           VARCHAR(50) NOT NULL," +
                     "    modelo          VARCHAR(50) NOT NULL," +
-                    "    extras          VARCHAR(255),\n" +
+                    "    extras          VARCHAR(255)," +
                     "    precio          DECIMAL(10, 2) NOT NULL," +
                     "    id_propietario  INT," +
                     "    FOREIGN KEY (id_propietario) REFERENCES propietarios(id_propietario)" +
