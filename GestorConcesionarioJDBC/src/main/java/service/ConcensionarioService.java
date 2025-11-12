@@ -20,7 +20,8 @@ public class ConcensionarioService {
      * @throws SQLException
      */
     public void comprobarConexionVacia() throws SQLException {
-        connCont.getConnectionVacia();
+        try (Connection connection = connCont.getConnectionVacia()) {
+        }
         System.out.println("Conexión realizada con éxito (vacía)");
     }
 
@@ -30,7 +31,10 @@ public class ConcensionarioService {
      * @throws SQLException
      */
     public void comprobarConexionMySQL() throws SQLException {
-        connCont.getConnectionMySQL();
+        // Se crea el esquema para comprobar la conexión
+        crearEsquema();
+        try (Connection connection = connCont.getConnectionMySQL()) {
+        }
         System.out.println("Conexión realizada con éxito (MySQL)");
     }
 
@@ -40,7 +44,8 @@ public class ConcensionarioService {
      * @throws SQLException
      */
     public void comprobarConexionSQLite() throws SQLException {
-        connCont.getConnectionSQLite();
+        try (Connection connection = connCont.getConnectionSQLite()) {
+        }
         System.out.println("Conexión realizada con éxito (SQLite)");
     }
 
@@ -65,8 +70,6 @@ public class ConcensionarioService {
      * @throws SQLException
      */
     public void crearTablasMySQL() throws SQLException {
-        // Creamos el esquema antes de crear las tablas
-        crearEsquema(); // TODO: mover fuera para poder comprobar la conexión con la base de datos
         // Obtenemos la conexión a la base de datos una vez creada
         try (Connection connection = connCont.getConnectionMySQL()) {
             Statement statement = connection.createStatement();
