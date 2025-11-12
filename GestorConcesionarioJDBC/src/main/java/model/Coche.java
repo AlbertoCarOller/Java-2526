@@ -9,16 +9,14 @@ public class Coche {
     private String modelo;
     private ArrayList<String> extras;
     private double precio;
-    private int idPropietario;
 
     // Creamos el constructor
-    public Coche(String matricula,  String marca, String modelo, ArrayList<String> extras, double precio, int idPropietario) {
+    public Coche(String matricula, String marca, String modelo, ArrayList<String> extras, double precio) {
         this.matricula = matricula;
         this.marca = marca;
         this.modelo = modelo;
         this.extras = extras;
         this.precio = precio;
-        this.idPropietario = idPropietario;
     }
 
     // Hacemos los get y set
@@ -63,14 +61,6 @@ public class Coche {
         this.precio = precio;
     }
 
-    public int getIdPropietario() {
-        return idPropietario;
-    }
-
-    public void setIdPropietario(int idPropietario) {
-        this.idPropietario = idPropietario;
-    }
-
     // Hacemos el toString
 
     @Override
@@ -81,7 +71,6 @@ public class Coche {
                 ", modelo='" + modelo + '\'' +
                 ", extras=" + extras +
                 ", precio=" + precio +
-                ", idPropietario=" + idPropietario +
                 '}';
     }
 }

@@ -68,15 +68,7 @@ public class SQLSentences {
                 FOREIGN KEY (id_comprador)    REFERENCES propietarios(id_propietario)
             );""";
     // Insercciones de ejemplo al crear las tablas, las sentencias inserts básicas son válidas para MySQL y SQLite
-    public static final String SQL_INSERT_PROPIETARIOS_SQL = """
-            INSERT INTO propietarios (dni, nombre, apellidos, telefono) VALUES
-            ('11111111A', 'Ana', 'García López', '611111111'),
-            ('22222222B', 'Luis', 'Martínez Pérez', '622222222'),
-            ('33333333C', 'Carlos', 'Sánchez Ruiz', '633333333');
-            """;
-    public static final String SQL_INSERT_COCHES_SQL = """
-            INSERT INTO coches (matricula, marca, modelo, extras, precio, id_propietario) VALUES
-            ('1234ABC', 'Seat', 'Ibiza', 'Aire Acondicionado', 18000.50, 1),
-            ('5678DEF', 'Ford', 'Focus', 'Navegador|Techo solar', 22500.00, 2);
+    public static final String SQL_INSERT_COCHE_SQL = """
+            INSERT INTO coches(matricula, marca, modelo, extras, precio) VALUES (?, ?, ?, ?, ?)
             """;
 }

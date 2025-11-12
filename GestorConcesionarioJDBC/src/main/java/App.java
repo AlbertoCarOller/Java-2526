@@ -7,8 +7,8 @@ public class App {
     public static void main(String[] args) {
         try {
             ConcensionarioService concensionarioService = new ConcensionarioService();
-            concensionarioService.comprobarConexionMySQL();
-            concensionarioService.crearTablasMySQL();
+            //concensionarioService.inciarDataBase(true);
+            concensionarioService.inciarDataBase(false);
         } catch (IOException | SQLException e) {
             System.out.println("Error" + e.getMessage());
         }
