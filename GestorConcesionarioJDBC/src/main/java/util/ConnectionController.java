@@ -27,8 +27,8 @@ public class ConnectionController {
     public Connection getConnectionVacia() throws SQLException {
         return DriverManager.getConnection(prop
                         .getProperty("urlVacio"),
-                prop.getProperty("userVacio"),
-                prop.getProperty("passwordVacio"));
+                prop.getProperty("userMySQL"),
+                prop.getProperty("passwordMySQL"));
     }
 
     /**

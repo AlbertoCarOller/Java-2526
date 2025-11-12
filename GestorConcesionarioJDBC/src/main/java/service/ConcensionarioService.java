@@ -1,6 +1,7 @@
 package service;
 
 import util.ConnectionController;
+import util.SQLSentences;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -11,42 +12,48 @@ public class ConcensionarioService {
     private ConnectionController connCont;
 
     public ConcensionarioService() throws IOException {
-        connCont = new ConnectionController();
+        connCont = new ConnectionController(); // -> Controlador de las conexiones con las bases de datos
     }
 
     /**
      * Se comprueba que la conexión se ha realizado correctamente
      *
-     * @throws SQLException
+     * @return true si la conexión funciona
+     * @throws SQLException en caso de que la conexión no funcione, por lo que no devolverá nada
      */
-    public void comprobarConexionVacia() throws SQLException {
+    public Boolean comprobarConexionVacia() throws SQLException {
         try (Connection connection = connCont.getConnectionVacia()) {
         }
-        System.out.println("Conexión realizada con éxito (vacía)");
+        // Si no ha saltado excepción devolverá true
+        return true;
     }
 
     /**
      * Se comprueba que la conexión se ha realizado correctamente con MySQL a la base de datos
      *
-     * @throws SQLException
+     * @return true si la conexión funciona
+     * @throws SQLException en caso de que la conexión no funcione, por lo que no devolverá nada
      */
-    public void comprobarConexionMySQL() throws SQLException {
+    public Boolean comprobarConexionMySQL() throws SQLException {
         // Se crea el esquema para comprobar la conexión
         crearEsquema();
         try (Connection connection = connCont.getConnectionMySQL()) {
         }
-        System.out.println("Conexión realizada con éxito (MySQL)");
+        // Si no ha saltado excepción devolverá true
+        return true;
     }
 
     /**
      * Se comprueba que la conexión se ha realizado correctamente con SQLite
      *
-     * @throws SQLException
+     * @return true si la conexión funciona
+     * @throws SQLException en caso de que la conexión no funcione, por lo que no devolverá nada
      */
-    public void comprobarConexionSQLite() throws SQLException {
+    public Boolean comprobarConexionSQLite() throws SQLException {
         try (Connection connection = connCont.getConnectionSQLite()) {
         }
-        System.out.println("Conexión realizada con éxito (SQLite)");
+        // Si no ha saltado excepción devolverá true
+        return true;
     }
 
     /**
@@ -59,7 +66,7 @@ public class ConcensionarioService {
         try (Connection connection = connCont.getConnectionVacia()) {
             // Se crea la base de datos
             Statement statement = connection.createStatement();
-            statement.execute("CREATE DATABASE IF NOT EXISTS concesionario_db");
+            statement.execute(SQLSentences.SQL_CREATE_SCHEME_MYSQL);
         }
     }
 
@@ -70,36 +77,68 @@ public class ConcensionarioService {
      * @throws SQLException
      */
     public void crearTablasMySQL() throws SQLException {
-        // Obtenemos la conexión a la base de datos una vez creada
-        try (Connection connection = connCont.getConnectionMySQL()) {
-            Statement statement = connection.createStatement();
-            // Creamos las tablas
-            statement.execute("CREATE TABLE IF NOT EXISTS propietarios (" +
-                    "    id_propietario INT PRIMARY KEY AUTO_INCREMENT," +
-                    "    dni            VARCHAR(10) NOT NULL UNIQUE," +
-                    "    nombre         VARCHAR(100) NOT NULL," +
-                    "    apellidos      VARCHAR(150) NOT NULL," +
-                    "    telefono       VARCHAR(15)" +
-                    ");");
-            statement.execute("CREATE TABLE IF NOT EXISTS coches (" +
-                    "    matricula       VARCHAR(10) PRIMARY KEY," +
-                    "    marca           VARCHAR(50) NOT NULL," +
-                    "    modelo          VARCHAR(50) NOT NULL," +
-                    "    extras          VARCHAR(255)," +
-                    "    precio          DECIMAL(10, 2) NOT NULL," +
-                    "    id_propietario  INT," +
-                    "    FOREIGN KEY (id_propietario) REFERENCES propietarios(id_propietario)" +
-                    ");");
-            statement.execute("CREATE TABLE IF NOT EXISTS traspasos (" +
-                    "    id_traspaso     INT PRIMARY KEY AUTO_INCREMENT," +
-                    "    matricula_coche VARCHAR(10) NOT NULL," +
-                    "    id_vendedor     INT NOT NULL," +
-                    "    id_comprador    INT NOT NULL," +
-                    "    monto_economico DECIMAL(10, 2) NOT NULL," +
-                    "    FOREIGN KEY (matricula_coche) REFERENCES coches(matricula)," +
-                    "    FOREIGN KEY (id_vendedor)     REFERENCES propietarios(id_propietario)," +
-                    "    FOREIGN KEY (id_comprador)    REFERENCES propietarios(id_propietario)" +
-                    ");");
+        // Creamos la conexión nula
+        Connection connection = null;
+        try {
+            // Inicializamos la conexión
+            connection = connCont.getConnectionMySQL();
+            try (Statement statement = connection.createStatement()) {
+                // Creamos una transacción de todo o nada
+                connection.setAutoCommit(false);
+                // Creamos las tablas
+                statement.execute(SQLSentences.SQL_CREATE_TABLE_PROPIETARIOS_MYSQL);
+                statement.execute(SQLSentences.SQL_CREATE_TABLE_COCHES_MYSQL);
+                statement.execute(SQLSentences.SQL_CREATE_TABLE_TRASPASOS_MYSQL);
+                // Hacemos commit si no ha saltado excepción
+                connection.commit();
+            }
+        } catch (SQLException e) {
+            // En caso de que no sea nula la conexión y haya excepción, se hace rollback
+            if (connection != null) {
+                connection.rollback();
+                throw new SQLException(e.getMessage()); // -> Lanzar excepción con el mensaje de error
+            }
+        } finally { // -> Garantiza que se cierre la conexión y se ponga el auto-commit a true, pase lo que pase
+            // En caso de que no sea nula la conexión
+            if (connection != null) {
+                // Se cierra la conexión
+                connection.close();
+                // Se devuelve el auto-commit a true
+                connection.setAutoCommit(true);
+            }
         }
     }
+
+    /**
+     * Esta función va a crear las tablas necesarias en SQLite
+     *
+     * @throws SQLException
+     */
+    public void crearTablasSQLite() throws SQLException {
+        // Obtenemos la conexión en null
+        Connection connection = null;
+        // Obtenemos la conexión con SQLite
+        try {
+            connection = connCont.getConnectionSQLite();
+            try (Statement statement = connection.createStatement()) {
+                // Creamos las tablas
+                statement.execute(SQLSentences.SQL_CREATE_TABLE_PROPIETARIOS_MYSQLITE);
+                statement.execute(SQLSentences.SQL_CREATE_TABLE_COCHES_MYSQLITE);
+                statement.execute(SQLSentences.SQL_CREATE_TABLE_TRASPASOS_MYSQLITE);
+                connection.commit();
+            }
+        } catch (SQLException e) {
+            if (connection != null) {
+                connection.rollback();
+                throw new SQLException(e.getMessage());
+            }
+        } finally {
+            if (connection != null) {
+                connection.close();
+                connection.setAutoCommit(true);
+            }
+        }
+    }
+
+    // TODO: método privado que haga una transacción de las insercciones de los datos del CSV
 }

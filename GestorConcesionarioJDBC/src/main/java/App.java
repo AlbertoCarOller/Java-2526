@@ -8,8 +8,9 @@ public class App {
         try {
             ConcensionarioService concensionarioService = new ConcensionarioService();
             concensionarioService.comprobarConexionMySQL();
+            concensionarioService.crearTablasMySQL();
         } catch (IOException | SQLException e) {
-            System.out.println("No se ha podido conectar:" + e.getMessage());
+            System.out.println("Error" + e.getMessage());
         }
     }
 }
