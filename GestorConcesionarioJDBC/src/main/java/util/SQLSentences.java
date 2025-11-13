@@ -71,7 +71,7 @@ public class SQLSentences {
     public static final String SQL_INSERT_COCHE_SQL = """
             INSERT INTO coches(matricula, marca, modelo, extras, precio) VALUES (?, ?, ?, ?, ?)
             """;
-    // Consulta, muestra un listado de los coches que tienen propietarios
+    // Consulta, muestra un listado de los coches que no tienen propietarios
     public static final String SQL_COCHES_SIN_PROPIETARIO = """
             select *
             from coches c
@@ -81,6 +81,11 @@ public class SQLSentences {
             select *
             from coches c
             where c.id_propietario is NOT NULL;""";
+    // Consulta, muestra un listado de los coches que tienen propietarios
+    public static final String SQL_COCHES_CON_PROPIETARIO_JOIN = """
+            select c.matricula, c.marca, c.modelo, c.extras, c.precio
+            from coches c
+            join propietarios p on c.id_propietario = p.id_propietario;""";
     // Insertar propietario
     public static final String SQL_INSERTAR_PROPIETARIO = """
             insert into propietarios(dni, nombre, apellidos, telefono) values (?, ?, ?, ?);""";

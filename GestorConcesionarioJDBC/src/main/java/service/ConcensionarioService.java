@@ -321,7 +321,7 @@ public class ConcensionarioService {
             try (Statement statement = connection.createStatement()) {
                 String sqlDecidida;
                 // Dependiendo de si queremos mostrar con o sin propietarios se seleccionará un setencia u otra
-                if (propietarios) sqlDecidida = SQLSentences.SQL_COCHES_CON_PROPIETARIO;
+                if (propietarios) sqlDecidida = SQLSentences.SQL_COCHES_CON_PROPIETARIO_JOIN;
                 else sqlDecidida = SQLSentences.SQL_COCHES_SIN_PROPIETARIO;
                 // El ResultSet se cierra solo cuando su Statement se cierra
                 ResultSet rs = statement.executeQuery(sqlDecidida);
