@@ -1,18 +1,15 @@
 package service;
 
+import PersonalExceptions.ConcesionarioExcepcion;
 import model.Coche;
 import util.ConfigLoader;
 import util.ConnectionController;
 import util.SQLSentences;
 
-import javax.swing.*;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -254,7 +251,7 @@ public class ConcensionarioService {
      * @throws SQLException
      * @throws IOException
      */
-    public boolean inciarDataBase(Boolean mysql) throws SQLException, IOException {
+    public boolean iniciarDataBase(Boolean mysql) throws SQLException, IOException {
         Boolean conexionCorrecta; // Si la conexión es correcta
         // Si nos queremos conectar con MySQL
         if (mysql) {
@@ -268,5 +265,121 @@ public class ConcensionarioService {
             insertarDatosCSV(importarCochesCSV(), false); // -> Insertamos los datos del CSV
         }
         return conexionCorrecta;
+    }
+
+    /**
+     * Esta función va a insertar en la base de datos un solo coche,
+     * se comprueban los campos propensos a estar vacíos para evitar
+     * que haya una mala insercción
+     *
+     * @param matricula la matrícula a insertar
+     * @param marca     la marca a insertar
+     * @param modelo    el modelo a insertar
+     * @param extras    los extras a insertar
+     * @param precio    el precio del coche
+     * @param mysql     si se hace en la conexión MySQL o SQLite
+     * @throws ConcesionarioExcepcion
+     * @throws SQLException
+     */
+    public void insertarCoche(String matricula, String marca, String modelo, List<String> extras, double precio, boolean mysql)
+            throws ConcesionarioExcepcion, SQLException {
+        // Comprobamos si los campos son correctos
+        if (marca.isEmpty() || modelo.isEmpty() || matricula.isEmpty()) {
+            throw new ConcesionarioExcepcion("Algún campo es inválido");
+        }
+        try (Connection connection = elegirConexion(mysql)) {
+            // Creamos el PreparedStatement
+            try (PreparedStatement preparedStatement = connection.prepareStatement(SQLSentences.SQL_INSERT_COCHE_SQL)) {
+                preparedStatement.setString(1, matricula);
+                preparedStatement.setString(2, marca);
+                preparedStatement.setString(3, modelo);
+                if (extras.isEmpty()) preparedStatement.setNull(4, java.sql.Types.NULL);
+                else preparedStatement.setString(4, String.join(", ", extras));
+                preparedStatement.setDouble(5, precio);
+                // Ejecutamos la insercción
+                preparedStatement.execute();
+            }
+        }
+    }
+
+    /**
+     * Esta función va a devolver una lista de Strings con los elementos
+     * de los coches, dependiendo de lo que quiera el usuario se elegirá
+     * la conexión y se elegirá si quiere que se muestre los coches con o sin
+     * propietarios
+     *
+     * @param mysql        la conexión
+     * @param propietarios con o sin propietarios
+     * @return una lista de coches (Strings)
+     * @throws SQLException
+     */
+    public List<String> listarCoches(boolean mysql, boolean propietarios) throws SQLException {
+        // La lista de coches a devolver como Strings para no transformarlos a objetos
+        List<String> coches = new ArrayList<>();
+        try (Connection connection = elegirConexion(mysql)) {
+            // Preparamos el Statement
+            try (Statement statement = connection.createStatement()) {
+                String sqlDecidida;
+                // Dependiendo de si queremos mostrar con o sin propietarios se seleccionará un setencia u otra
+                if (propietarios) sqlDecidida = SQLSentences.SQL_COCHES_CON_PROPIETARIO;
+                else sqlDecidida = SQLSentences.SQL_COCHES_SIN_PROPIETARIO;
+                // El ResultSet se cierra solo cuando su Statement se cierra
+                ResultSet rs = statement.executeQuery(sqlDecidida);
+                while (rs.next()) {
+                    coches.add(String.join(" | ", rs.getString(1),
+                            rs.getString(2),
+                            rs.getString(3),
+                            rs.getString(4) == null ? "Sin extras" : rs.getString(4),
+                            String.valueOf(rs.getDouble(5)),
+                            rs.getInt(6) == 0 ? "Sin propietario" : String.valueOf(rs.getInt(6))));
+                }
+            }
+        }
+        return coches;
+    }
+
+    /**
+     * Esta función va a permitir insertar un propietario en cualquier base de datos,
+     * esto dependerá de lo que elija el usuario
+     *
+     * @param mysql     si quiere que se conecte con MySQL o SQLite
+     * @param dni       el dni
+     * @param nombre    el nombre
+     * @param apellidos los apellidos
+     * @param telefono  el teléfono
+     * @throws SQLException
+     * @throws ConcesionarioExcepcion
+     */
+    public void insertarPropietario(boolean mysql, String dni, String nombre, String apellidos, String telefono)
+            throws SQLException, ConcesionarioExcepcion {
+        if (dni.isEmpty() || nombre.isEmpty() || apellidos.isEmpty()) {
+            throw new ConcesionarioExcepcion("Algún campo es inválido");
+        }
+        // Creamos la conexión
+        try (Connection connection = elegirConexion(mysql)) {
+            // Creamos el PreparedStatement para insertar propietario
+            try (PreparedStatement preparedStatement = connection.prepareStatement(SQLSentences.SQL_INSERTAR_PROPIETARIO)) {
+                preparedStatement.setString(1, dni);
+                preparedStatement.setString(2, nombre);
+                preparedStatement.setString(3, apellidos);
+                // En caso de que el teléfono esté vacío se inserta null ya que el campo es nullable
+                if (telefono.isEmpty()) preparedStatement.setNull(4, java.sql.Types.NULL);
+                else preparedStatement.setString(4, telefono);
+                // Ejecutamos la insercción
+                preparedStatement.execute();
+            }
+        }
+    }
+
+    /**
+     * Esta función nos va a permitir alternar entre una conexión u otra
+     *
+     * @param mysql si quiere mysql o sqlite
+     * @return la conexión
+     * @throws SQLException
+     */
+    private Connection elegirConexion(boolean mysql) throws SQLException {
+        if (mysql) return connCont.getConnectionMySQL();
+        else return connCont.getConnectionSQLite();
     }
 }
