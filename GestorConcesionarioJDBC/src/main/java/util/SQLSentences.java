@@ -89,4 +89,33 @@ public class SQLSentences {
     // Insertar propietario
     public static final String SQL_INSERTAR_PROPIETARIO = """
             insert into propietarios(dni, nombre, apellidos, telefono) values (?, ?, ?, ?);""";
+    // Borrar coche por matrícula
+    public static final String SQL_DELETE_COCHE = """
+            delete
+            from coches
+            where matricula like ?;
+            """;
+    // Consuta que devuelve un coche buscado por la matrícula
+    public static final String SQL_OBTENER_COCHE = """
+            select *
+            from coches
+            where matricula like ?;""";
+    // Actualizamos los campos de un Coche
+    public static final String SQL_ACTUALIZAR_COCHE = """
+            update coches
+            set
+            	marca = ?,
+                modelo = ?,
+                extras = ?,
+                precio = ?
+            where matricula = ?;""";
+    // Consulta que devuelve un propietario
+    public static final String SQL_OBTENER_PROPIETARIO = """
+            select *
+            from propietarios
+            where id_propietario = ?;""";
+    // Inserta datos en un traspaso
+    public static final String SQL_INSERTAR_TRASPASO = """
+            insert into traspasos(matricula_coche, id_vendedor, id_comprador, monto_economico)
+             values(?, ?, ?, ?);""";
 }

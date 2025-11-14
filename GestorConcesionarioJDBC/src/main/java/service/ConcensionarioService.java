@@ -230,13 +230,13 @@ public class ConcensionarioService {
             // Si hay 4 campos significa que no hay extras
             if (campos.size() == 4) {
                 coches.add(new Coche(campos.getFirst().trim(), campos.get(1).trim(), campos.get(2).trim(), new ArrayList<>(),
-                        Double.parseDouble(campos.getLast().trim())));
+                        Double.parseDouble(campos.getLast().trim()), 0));
 
                 // Si hay 5 campos significa que tiene extras
             } else if (campos.size() == 5) {
                 coches.add(new Coche(campos.getFirst().trim(), campos.get(1).trim(), campos.get(2).trim(),
                         Arrays.stream(campos.get(3).trim().split("\\|")).map(String::trim).collect(Collectors
-                                .toCollection(ArrayList::new)), Double.parseDouble(campos.getLast().trim())));
+                                .toCollection(ArrayList::new)), Double.parseDouble(campos.getLast().trim()), 0));
             }
         });
         return coches; // -> Devolvemos la lista con los coches ya formados
@@ -297,7 +297,7 @@ public class ConcensionarioService {
                 else preparedStatement.setString(4, String.join(", ", extras));
                 preparedStatement.setDouble(5, precio);
                 // Ejecutamos la insercción
-                preparedStatement.execute();
+                preparedStatement.executeUpdate();
             }
         }
     }
@@ -366,7 +366,7 @@ public class ConcensionarioService {
                 if (telefono.isEmpty()) preparedStatement.setNull(4, java.sql.Types.NULL);
                 else preparedStatement.setString(4, telefono);
                 // Ejecutamos la insercción
-                preparedStatement.execute();
+                preparedStatement.executeUpdate();
             }
         }
     }
@@ -381,5 +381,169 @@ public class ConcensionarioService {
     private Connection elegirConexion(boolean mysql) throws SQLException {
         if (mysql) return connCont.getConnectionMySQL();
         else return connCont.getConnectionSQLite();
+    }
+
+    /**
+     * Esta función va borrar de la base de datos el coche
+     * que corresponda a una matrícula
+     *
+     * @param matricula la matrícula del coche a buscar
+     * @param mysql     si quiere mysql o sqlite
+     * @throws ConcesionarioExcepcion
+     * @throws SQLException
+     */
+    public void borrarCoche(String matricula, boolean mysql) throws ConcesionarioExcepcion, SQLException {
+        // Comprobamos que el campo matrícula no esté vacío
+        if (matricula.isEmpty()) {
+            throw new ConcesionarioExcepcion("La matrícula está vacía");
+        }
+        // Creamos la conexión
+        try (Connection connection = elegirConexion(mysql)) {
+            // Creamos el PreparedStatement
+            try (PreparedStatement preparedStatement = connection.prepareStatement(SQLSentences.SQL_DELETE_COCHE)) {
+                // PreparedStatement -> Le pasamos la matrícula del coche que se quiere eliminar
+                preparedStatement.setString(1, matricula);
+                // Ejecuto el PreparedStatement
+                preparedStatement.executeUpdate();
+            }
+        }
+    }
+
+    /**
+     * Esta función va a modificar un coche en concreto dependiendo de la matrícula,
+     * se cambiarán los campos que no estén vacíos o sea -1 en caso del precio, si eso
+     * es así, significará que se debe mantener el que había
+     *
+     * @param matricula la matrícula del coche a actualizar
+     * @param marca     la marca nueva o no
+     * @param modelo    el modelo nuevo o no
+     * @param extras    los extras nuevos, o no
+     * @param precio    el precio nuevo o no
+     * @param mysql     si es mysql o sqlite
+     * @throws ConcesionarioExcepcion
+     * @throws SQLException
+     */
+    public void modificarCoche(String matricula, String marca, String modelo, List<String> extras, double precio, boolean mysql)
+            throws ConcesionarioExcepcion, SQLException {
+        // Comprobamos que la matrícula sea válida
+        if (matricula.isBlank()) {
+            throw new ConcesionarioExcepcion("La matrícula no puede estar vacía");
+        }
+        // Se decide la conexión
+        try (Connection connection = elegirConexion(mysql)) {
+            // Obtenemos el coche a modificar
+            Coche coche = obtenerCoche(matricula, connection);
+            // Si el coche es null, lanzamos exception
+            if (coche == null) {
+                throw new ConcesionarioExcepcion("No se ha encontrado el registro");
+            }
+            // Creamos el PreparedStatement
+            try (PreparedStatement preparedStatement = connection.prepareStatement(SQLSentences.SQL_ACTUALIZAR_COCHE)) {
+                if (!marca.isBlank()) preparedStatement.setString(1, marca);
+                else preparedStatement.setString(1, coche.getMarca());
+                if (!modelo.isBlank()) preparedStatement.setString(2, modelo);
+                else preparedStatement.setString(2, coche.getModelo());
+                if (!extras.isEmpty()) preparedStatement.setString(3, String.join(", ", extras));
+                else {
+                    if (!coche.getExtras().isEmpty()) preparedStatement
+                            .setString(3, String.join(", ", coche.getExtras()));
+                    else preparedStatement.setNull(3, Types.NULL);
+                }
+                if (precio >= 0) preparedStatement.setDouble(4, precio);
+                else preparedStatement.setDouble(4, coche.getPrecio());
+                // Le pasamos la matrícula, corresponde al WHERE
+                preparedStatement.setString(5, matricula);
+                // Ejecutamos el UPDATE
+                preparedStatement.executeUpdate();
+            }
+        }
+    }
+
+    /**
+     * Esta función va a obtener un coche a partir de una consulta, mediante
+     * su matrícula, va a transformarlo en un objeto Coche
+     *
+     * @param matricula  la matrícula para buscar al coche
+     * @param connection la conexión con la que se está trabajando
+     * @return el objeto Coche
+     * @throws SQLException
+     */
+    public Coche obtenerCoche(String matricula, Connection connection) throws SQLException {
+        // Creamos un PreparedStatement
+        try (PreparedStatement preparedStatement = connection.prepareStatement(SQLSentences.SQL_OBTENER_COCHE)) {
+            preparedStatement.setString(1, matricula);
+            // Obtenemos los campos del coche concreto
+            ResultSet resultSet = preparedStatement.executeQuery();
+            // Si hay resultado creamos el objeto
+            if (resultSet.next()) {
+                // Devolvemos el objeto Coche
+                return new Coche(resultSet.getString(1), resultSet.getString(2),
+                        // Creamos una lista a partir de los extras que haya
+                        resultSet.getString(3),
+                        !resultSet.getString(4).isBlank() ? Arrays.stream(resultSet.getString(4)
+                                .split(", ")).map(String::trim).collect(Collectors.toCollection(ArrayList::new))
+                                : new ArrayList<>(),
+                        resultSet.getDouble(5), resultSet.getInt(6));
+            }
+        }
+        return null;
+    }
+
+    public void traspaso(String matriculaCoche, int idComprador, boolean mysql) throws ConcesionarioExcepcion, SQLException {
+        // Comrpobamos que los campos no estén vacíos
+        if (matriculaCoche.isBlank() || idComprador == 0) {
+            throw new ConcesionarioExcepcion("La matrícula o el id del comprador están vacíos");
+        }
+        // Elegimos la conexión
+        try (Connection connection = elegirConexion(mysql)) {
+            Coche coche = obtenerCoche(matriculaCoche, connection);
+            // Comprobamos que la matrícula esté asociada a un coche real y lo mismo con el dni del comprador
+            if (!comprobarIdPropietario(idComprador, connection) || coche == null) {
+                throw new ConcesionarioExcepcion("El dni del comprador no coincide con ningún dni o la matrícula no coincide");
+            }
+            // TODO: implementar insertarTraspaso, actualizar la tabla coches y meter todo en una transacción
+            // Llegados a este punto el traspaso se puede realizar con o sin vendedor, es decir concesionario o particular
+
+        }
+    }
+
+    /**
+     * Esta función comprueba a partir de una matrícula si existe o no el comprador o vendedor,
+     *
+     * @param dniPropietario el dni del propietario
+     * @param connection     la conexión con la base de datos
+     * @return si existe o no ese propietario en concreto
+     * @throws SQLException
+     */
+    private boolean comprobarIdPropietario(int idComprador, Connection connection) throws SQLException {
+        // Creamos un PreparedStatement
+        try (PreparedStatement preparedStatement = connection.prepareStatement(SQLSentences.SQL_OBTENER_PROPIETARIO)) {
+            preparedStatement.setInt(1, idComprador);
+            // Devolvemos si existe
+            return preparedStatement.executeQuery().next();
+        }
+    }
+
+    /**
+     * Esta función va a insertar un traspaso en la tabla traspasos
+     *
+     * @param connection  la conexión
+     * @param coche       el coche a insertar (la matrícula)
+     * @param idComprador el id del comprador
+     * @throws SQLException
+     */
+    private void insertarTraspaso(Connection connection, Coche coche, int idComprador)
+            throws SQLException {
+        // Creamos el PreparedStatement
+        try (PreparedStatement preparedStatement = connection
+                .prepareStatement(SQLSentences.SQL_INSERTAR_TRASPASO)) {
+            // Insertamos los datos
+            preparedStatement.setString(1, coche.getMatricula());
+            // Comprobamos si compra el coche a un particular o a un concesionario
+            if (coche.getIdPropietario() == 0) preparedStatement.setNull(2, Types.NULL);
+            else preparedStatement.setInt(2, coche.getIdPropietario());
+            preparedStatement.setInt(3, idComprador);
+            preparedStatement.setDouble(4, coche.getPrecio());
+        }
     }
 }
