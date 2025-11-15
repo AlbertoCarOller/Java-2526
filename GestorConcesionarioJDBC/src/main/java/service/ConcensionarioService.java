@@ -489,50 +489,89 @@ public class ConcensionarioService {
         return null;
     }
 
-    public void traspaso(String matriculaCoche, int idComprador, boolean mysql) throws ConcesionarioExcepcion, SQLException {
-        // Comrpobamos que los campos no estén vacíos
-        if (matriculaCoche.isBlank() || idComprador == 0) {
-            throw new ConcesionarioExcepcion("La matrícula o el id del comprador están vacíos");
+    /**
+     * Esta función se encarga de realizar un traspaso de un vehículo de un concesionario a una persona o
+     * de una persona a otra
+     *
+     * @param matriculaCoche la matrícula del coche a traspasar
+     * @param dniComprador   el dni del comprador
+     * @param montoEconomico el monto económico
+     * @param mysql          el tipo de conexión
+     * @throws ConcesionarioExcepcion
+     * @throws SQLException
+     */
+    public void traspaso(String matriculaCoche, String dniComprador, double montoEconomico, boolean mysql)
+            throws ConcesionarioExcepcion, SQLException {
+        // Comprobamos que los campos no estén vacíos
+        if (matriculaCoche.isBlank() || dniComprador.isBlank() || montoEconomico < 0) {
+            throw new ConcesionarioExcepcion("Algún campo no es válido");
         }
-        // Elegimos la conexión
-        try (Connection connection = elegirConexion(mysql)) {
+        Connection connection = null;
+        try {
+            // Elegimos la conexión
+            connection = elegirConexion(mysql);
+            // Ponemos el autocomit a false aquí, lo antes posible por si salta excepción e intenta hacer rollback
+            connection.setAutoCommit(false);
             Coche coche = obtenerCoche(matriculaCoche, connection);
+            int idComprador = comprobarId(dniComprador, connection);
             // Comprobamos que la matrícula esté asociada a un coche real y lo mismo con el dni del comprador
-            if (!comprobarIdPropietario(idComprador, connection) || coche == null) {
-                throw new ConcesionarioExcepcion("El dni del comprador no coincide con ningún dni o la matrícula no coincide");
+            if (idComprador == 0 || coche == null) {
+                throw new ConcesionarioExcepcion("El comprador y/o el coche no existen");
             }
-            // TODO: implementar insertarTraspaso, actualizar la tabla coches y meter todo en una transacción
-            // Llegados a este punto el traspaso se puede realizar con o sin vendedor, es decir concesionario o particular
+            /* Llegados a este punto el traspaso se puede realizar con o sin vendedor, es decir concesionario o particular
+             * así que vamos a comenzar con las insercciones y actualizaciones */
+            // Se inserta el traspaso
+            insertarTraspaso(connection, coche, idComprador, montoEconomico);
+            // Se actualiza el id_propietario del vehículo
+            actualizarIdPropietarioCoche(connection, idComprador, coche.getMatricula());
+            // Se hace un commit
+            connection.commit();
 
+        } catch (SQLException | ConcesionarioExcepcion e) {
+            if (connection != null) {
+                connection.rollback();
+            }
+            throw new ConcesionarioExcepcion(e.getMessage());
+
+        } finally {
+            if (connection != null) {
+                connection.setAutoCommit(true);
+                connection.close();
+            }
         }
     }
 
     /**
      * Esta función comprueba a partir de una matrícula si existe o no el comprador o vendedor,
      *
-     * @param dniPropietario el dni del propietario
-     * @param connection     la conexión con la base de datos
-     * @return si existe o no ese propietario en concreto
+     * @param dni        el dni de la persona. en este caso del comprador
+     * @param connection la conexión con la base de datos
+     * @return el id del comprador
      * @throws SQLException
      */
-    private boolean comprobarIdPropietario(int idComprador, Connection connection) throws SQLException {
+    private int comprobarId(String dni, Connection connection) throws SQLException {
         // Creamos un PreparedStatement
         try (PreparedStatement preparedStatement = connection.prepareStatement(SQLSentences.SQL_OBTENER_PROPIETARIO)) {
-            preparedStatement.setInt(1, idComprador);
-            // Devolvemos si existe
-            return preparedStatement.executeQuery().next();
+            preparedStatement.setString(1, dni);
+            // Devolvemos el id del comprador en caso de que exista (debe ser distinto de 0)
+            ResultSet rs = preparedStatement.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+            return 0;
         }
     }
 
     /**
      * Esta función va a insertar un traspaso en la tabla traspasos
      *
-     * @param connection  la conexión
-     * @param coche       el coche a insertar (la matrícula)
-     * @param idComprador el id del comprador
+     * @param connection     la conexión
+     * @param coche          el coche a insertar (la matrícula)
+     * @param idComprador    el id del comprador
+     * @param montoEconomico el precio de compra del coche
      * @throws SQLException
      */
-    private void insertarTraspaso(Connection connection, Coche coche, int idComprador)
+    private void insertarTraspaso(Connection connection, Coche coche, int idComprador, double montoEconomico)
             throws SQLException {
         // Creamos el PreparedStatement
         try (PreparedStatement preparedStatement = connection
@@ -543,7 +582,27 @@ public class ConcensionarioService {
             if (coche.getIdPropietario() == 0) preparedStatement.setNull(2, Types.NULL);
             else preparedStatement.setInt(2, coche.getIdPropietario());
             preparedStatement.setInt(3, idComprador);
-            preparedStatement.setDouble(4, coche.getPrecio());
+            preparedStatement.setDouble(4, montoEconomico);
+            preparedStatement.executeUpdate();
+        }
+    }
+
+    /**
+     * Esta función va a actualizar el id_propietario de coche, esto es para el traspaso
+     *
+     * @param connection    la conexión a la base de datos
+     * @param idPropietario el id nuevo del propietario
+     * @param matricula     la matrícula del coche al que hay que actualizarle el campo
+     * @throws SQLException
+     */
+    private void actualizarIdPropietarioCoche(Connection connection, int idPropietario, String matricula)
+            throws SQLException {
+        // Se crea el PreparedStatement
+        try (PreparedStatement ps = connection.prepareStatement(SQLSentences.SQL_ACTUALIZAR_ID_EN_COCHE)) {
+            // Se inserta el nuevo valor del propietario
+            ps.setInt(1, idPropietario);
+            ps.setString(2, matricula);
+            ps.executeUpdate();
         }
     }
 }

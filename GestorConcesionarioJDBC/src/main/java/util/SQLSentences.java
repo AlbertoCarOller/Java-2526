@@ -30,7 +30,7 @@ public class SQLSentences {
             CREATE TABLE IF NOT EXISTS traspasos (
                 id_traspaso     INT PRIMARY KEY AUTO_INCREMENT,
                 matricula_coche VARCHAR(10) NOT NULL,
-                id_vendedor     INT NOT NULL,
+                id_vendedor     INT,
                 id_comprador    INT NOT NULL,
                 monto_economico DECIMAL(10, 2) NOT NULL,
                 FOREIGN KEY (matricula_coche) REFERENCES coches(matricula),
@@ -60,7 +60,7 @@ public class SQLSentences {
             CREATE TABLE IF NOT EXISTS traspasos (
                 id_traspaso     INTEGER PRIMARY KEY AUTOINCREMENT,
                 matricula_coche TEXT(10) NOT NULL,
-                id_vendedor     INTEGER NOT NULL,
+                id_vendedor     INTEGER,
                 id_comprador    INTEGER NOT NULL,
                 monto_economico NUMERIC(10, 2) NOT NULL,
                 FOREIGN KEY (matricula_coche) REFERENCES coches(matricula),
@@ -111,11 +111,17 @@ public class SQLSentences {
             where matricula = ?;""";
     // Consulta que devuelve un propietario
     public static final String SQL_OBTENER_PROPIETARIO = """
-            select *
+            select id_propietario
             from propietarios
-            where id_propietario = ?;""";
+            where dni like ?""";
     // Inserta datos en un traspaso
     public static final String SQL_INSERTAR_TRASPASO = """
             insert into traspasos(matricula_coche, id_vendedor, id_comprador, monto_economico)
              values(?, ?, ?, ?);""";
+    // Sentencia que actualiza el id_propietario de coches (Se utiliza para el traspaso)
+    public static final String SQL_ACTUALIZAR_ID_EN_COCHE = """
+            update coches
+            set id_propietario = ?
+            where matricula = ?;
+            """;
 }
