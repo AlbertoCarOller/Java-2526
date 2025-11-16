@@ -6,14 +6,13 @@ import util.ConfigLoader;
 import util.ConnectionController;
 import util.SQLSentences;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class ConcensionarioService {
@@ -303,19 +302,18 @@ public class ConcensionarioService {
     }
 
     /**
-     * Esta función va a devolver una lista de Strings con los elementos
-     * de los coches, dependiendo de lo que quiera el usuario se elegirá
+     * Esta función va a devolver una lista de coches, dependiendo de lo que quiera el usuario se elegirá
      * la conexión y se elegirá si quiere que se muestre los coches con o sin
      * propietarios
      *
      * @param mysql        la conexión
      * @param propietarios con o sin propietarios
-     * @return una lista de coches (Strings)
+     * @return una lista de coches
      * @throws SQLException
      */
-    public List<String> listarCoches(boolean mysql, boolean propietarios) throws SQLException {
+    public List<Coche> listarCoches(boolean mysql, boolean propietarios) throws SQLException {
         // La lista de coches a devolver como Strings para no transformarlos a objetos
-        List<String> coches = new ArrayList<>();
+        List<Coche> coches;
         try (Connection connection = elegirConexion(mysql)) {
             // Preparamos el Statement
             try (Statement statement = connection.createStatement()) {
@@ -325,15 +323,32 @@ public class ConcensionarioService {
                 else sqlDecidida = SQLSentences.SQL_COCHES_SIN_PROPIETARIO;
                 // El ResultSet se cierra solo cuando su Statement se cierra
                 ResultSet rs = statement.executeQuery(sqlDecidida);
-                while (rs.next()) {
-                    coches.add(String.join(" | ", rs.getString(1),
-                            rs.getString(2),
-                            rs.getString(3),
-                            rs.getString(4) == null ? "Sin extras" : rs.getString(4),
-                            String.valueOf(rs.getDouble(5)),
-                            rs.getInt(6) == 0 ? "Sin propietario" : String.valueOf(rs.getInt(6))));
-                }
+                // Creamos la lista
+                coches = obtenerListaCoches(rs);
             }
+        }
+        return coches;
+    }
+
+    /**
+     * Esta función va a añadir los resultados de un ResulSet en una lista de String
+     *
+     * @param rs el ResultSet
+     * @return una lista con los coches formateados como Strings
+     * @throws SQLException
+     */
+    public List<Coche> obtenerListaCoches(ResultSet rs) throws SQLException {
+        // Lista vacía
+        List<Coche> coches = new ArrayList<>();
+        // Guardamos los resultados en caso de que hayan
+        while (rs.next()) {
+            coches.add(new Coche(rs.getString(1),
+                    rs.getString(2),
+                    rs.getString(3),
+                    Arrays.stream((rs.getString(4) == null ? "Sin extras" : rs.getString(4))
+                            .split(",")).map(String::trim).collect(Collectors.toCollection(ArrayList::new)),
+                    rs.getDouble(5),
+                    rs.getInt(6)));
         }
         return coches;
     }
@@ -384,7 +399,7 @@ public class ConcensionarioService {
     }
 
     /**
-     * Esta función va borrar de la base de datos el coche
+     * Esta función va a borrar de la base de datos el coche
      * que corresponda a una matrícula
      *
      * @param matricula la matrícula del coche a buscar
@@ -604,5 +619,149 @@ public class ConcensionarioService {
             ps.setString(2, matricula);
             ps.executeUpdate();
         }
+    }
+
+    /**
+     * Esta función va a llamar al procedimiento almacenado con la marca
+     * pasada por parámetros
+     *
+     * @param marca la marca de los vehículos a buscar
+     * @return una lista de los coches formateados como Strings
+     * @throws SQLException
+     * @throws ConcesionarioExcepcion
+     */
+    public List<Coche> procedimientoAlmacenado(String marca) throws SQLException, ConcesionarioExcepcion {
+        if (marca.isBlank()) {
+            throw new ConcesionarioExcepcion("La marca no es válida");
+        }
+        // Creamos la lista que vamos a devolver
+        List<Coche> coches;
+        try (Connection connection = elegirConexion(true)) {
+            // Creamos el procedimiento almacenado
+            crearProcedimientoAlmacenado(connection);
+            // Llamamos al procedimiento almacenado con CallableStatment, esta clase es para llamar a los procedimientos
+            try (CallableStatement cs = connection.prepareCall(SQLSentences.SQL_LLAMADA_PROCEDIMIENTO_ALMACENADO)) {
+                // Introducimos como parámetro del procedimiento la marca
+                cs.setString(1, marca);
+                // Ejecutamos el procedimiento
+                ResultSet rs = cs.executeQuery();
+                coches = obtenerListaCoches(rs);
+            }
+        }
+        return coches;
+    }
+
+    /**
+     * Esta función va a crear un procedimiento almacenado que va a mostrar
+     * los coches que sean de una marca concreta, en caso de que exista el
+     * procedimiento no pasará nada, ya que se remplazará el procedimiento
+     * existente
+     *
+     * @param connection la conexion con la base de datos
+     * @throws SQLException
+     */
+    private void crearProcedimientoAlmacenado(Connection connection) throws SQLException {
+        // Creamos el procedimiento almacenado
+        try (Statement statement = connection.createStatement()) {
+            // Eliminamos el procedimiento almacenado en caso de que exista
+            statement.execute(SQLSentences.SQL_BORRAR_PROCEDIMIENTO_ALMACENADO);
+            // Ejecutamos la sentencia para la creación del procedimiento almacenado
+            statement.execute(SQLSentences.SQL_PROCEDIMIENTO_ALMACENADO_CREACION);
+        }
+    }
+
+    /**
+     * Esta función va a escribir en .txt un resumen de la base de datos, como
+     * el número de coches entre otras cosas
+     * @param mysql el tipo de base de datos
+     * @throws IOException
+     * @throws SQLException
+     */
+    public void generarResumen(boolean mysql) throws IOException, SQLException {
+        // Obtenemos todos los coches de la base de datos
+        List<Coche> coches = obtenerCoches(mysql);
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(prop.getProperty("resumenTXT")))) {
+            bw.write("Número de cohes: " + numCoches(mysql) + "\n" +
+                    "Coches por marca:" + cochesPorMarca(coches) + "\n" +
+                    "Extra más repetido:" + extraMasRepetido(coches));
+        }
+    }
+
+    /**
+     * Esta función va a devolver el número de coches que hay en la base de datos
+     *
+     * @param mysql si la conexión deber ser mysql o sqlite
+     * @return el número de coches
+     * @throws SQLException
+     */
+    private int numCoches(boolean mysql) throws SQLException {
+        try (Connection connection = elegirConexion(mysql)) {
+            try (Statement statement = connection.createStatement()) {
+                ResultSet rs = statement.executeQuery(SQLSentences.SQL_NUM_COCHES);
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        }
+        return 0;
+    }
+
+    /**
+     * Esta función va a devolver una lista de todos los coches
+     * de la base de datos
+     *
+     * @param mysql el tipo de conexión
+     * @return una lista de todos los coches
+     * @throws SQLException
+     */
+    private List<Coche> obtenerCoches(boolean mysql) throws SQLException {
+        // Una lista de coches
+        List<Coche> coches;
+        try (Connection connection = elegirConexion(mysql)) {
+            try (Statement statement = connection.createStatement()) {
+                ResultSet rs = statement.executeQuery(SQLSentences.SQL_OBTENER_COCHES_TODOS);
+                // Obtenemos todos los coches de la base de datos y lo guardamos en la lista
+                coches = obtenerListaCoches(rs);
+            }
+        }
+        return coches;
+    }
+
+    /**
+     * Esta función va a devolver un mapa, la clave la marca, los valores,
+     * una lista de coches que pertenecen a esa marca
+     *
+     * @param coches la lista de coches de la base de datos
+     * @return
+     */
+    private Map<String, List<Coche>> cochesPorMarca(List<Coche> coches) {
+        return coches.stream().collect(Collectors.groupingBy(Coche::getMarca));
+    }
+
+    /**
+     * Esta fucnión va a devolver una lista de los extras más repetidos
+     *
+     * @param coches la lista de todos los coches de la base de datos
+     * @return la lista de extras más repetidos
+     */
+    private List<String> extraMasRepetido(List<Coche> coches) {
+        Long maximo = maximo(coches);
+        return coches.stream().flatMap(c -> c.getExtras().stream())
+                .collect(Collectors.groupingBy(s -> s, Collectors.counting())).entrySet()
+                .stream().filter(e -> e.getValue().equals(maximo)).map(Map.Entry::getKey)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Esta función va a devolver el número máximo de la repetición de
+     * extras, para posteriormente obtener los extras que más se repitan
+     *
+     * @param coches la lista de todos los coches de la base de datos
+     * @return el valor del máximo
+     */
+    private Long maximo(List<Coche> coches) {
+        return coches.stream().flatMap(c -> c.getExtras().stream())
+                .collect(Collectors.groupingBy(s -> s, Collectors.counting()))
+                .values().stream().max(Long::compareTo).orElse(0L);
     }
 }

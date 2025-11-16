@@ -69,7 +69,6 @@ public class Coche {
     }
 
     // Hacemos el toString
-
     @Override
     public String toString() {
         return "Coche{" +
@@ -78,6 +77,7 @@ public class Coche {
                 ", modelo='" + modelo + '\'' +
                 ", extras=" + extras +
                 ", precio=" + precio +
+                ", idPropietario=" + idPropietario +
                 '}';
     }
 }

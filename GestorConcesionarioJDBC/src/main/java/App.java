@@ -21,7 +21,9 @@ public class App {
             //concensionarioService.modificarCoche("7890MNP", "", "206", new ArrayList<>(), -1, false);
             //concensionarioService.borrarCoche("5465XMR", true);
             //concensionarioService.traspaso("3456JKL", "77590E", 1000.89, false);
-        } catch (IOException | SQLException /*| ConcesionarioExcepcion*/ e) {
+            concensionarioService.procedimientoAlmacenado("Seat").forEach(System.out::println);
+            concensionarioService.generarResumen(true);
+        } catch (IOException | SQLException | ConcesionarioExcepcion e) {
             System.out.println("Error: " + e.getMessage());
         }
     }

@@ -124,4 +124,33 @@ public class SQLSentences {
             set id_propietario = ?
             where matricula = ?;
             """;
+    // Creamos el procedimiento almacenado para mostrar vehículos por marca
+    public static final String SQL_PROCEDIMIENTO_ALMACENADO_CREACION = """
+            CREATE PROCEDURE sp_coches_por_marca(
+                            IN p_marca VARCHAR(50)
+                        )
+                        BEGIN
+                            SELECT *
+                            FROM coches
+                            WHERE marca = p_marca;
+                        END
+            """;
+    // Creamos la llamada del procedimiento almacenado
+    public static final String SQL_LLAMADA_PROCEDIMIENTO_ALMACENADO = """
+            {call sp_coches_por_marca(?)}
+            """;
+    // Creamos una sentencia para eliminar el procedimiento almacenado en caso de que exista
+    public static final String SQL_BORRAR_PROCEDIMIENTO_ALMACENADO = """
+            DROP PROCEDURE IF EXISTS sp_coches_por_marca
+            """;
+    // Creamos una sentencia que va a mostrar el número de coches
+    public static final String SQL_NUM_COCHES = """
+            select count(*)
+            from coches
+            """;
+    // Creamos una sentencia que nos devuelva todos los coches la base de datos
+    public static final String SQL_OBTENER_COCHES_TODOS = """
+            select *
+            from coches
+            """;
 }
