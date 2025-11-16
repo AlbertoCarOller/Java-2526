@@ -337,7 +337,7 @@ public class ConcensionarioService {
      * @return una lista con los coches formateados como Strings
      * @throws SQLException
      */
-    public List<Coche> obtenerListaCoches(ResultSet rs) throws SQLException {
+    private List<Coche> obtenerListaCoches(ResultSet rs) throws SQLException {
         // Lista vacía
         List<Coche> coches = new ArrayList<>();
         // Guardamos los resultados en caso de que hayan
@@ -414,6 +414,15 @@ public class ConcensionarioService {
         }
         // Creamos la conexión
         try (Connection connection = elegirConexion(mysql)) {
+            // Obtenemos el coche, en caso de que exista claro
+            Coche coche = obtenerCoche(matricula, connection);
+            // Se comprueba si existe
+            if (coche == null) {
+                throw new ConcesionarioExcepcion("El coche que intentas borrar no existe");
+            }
+            if (coche.getIdPropietario() != 0) {
+                throw new ConcesionarioExcepcion("Este coche tiene propietario, no se puede borrar");
+            }
             // Creamos el PreparedStatement
             try (PreparedStatement preparedStatement = connection.prepareStatement(SQLSentences.SQL_DELETE_COCHE)) {
                 // PreparedStatement -> Le pasamos la matrícula del coche que se quiere eliminar
@@ -495,7 +504,7 @@ public class ConcensionarioService {
                 return new Coche(resultSet.getString(1), resultSet.getString(2),
                         // Creamos una lista a partir de los extras que haya
                         resultSet.getString(3),
-                        !resultSet.getString(4).isBlank() ? Arrays.stream(resultSet.getString(4)
+                        resultSet.getString(4) != null ? Arrays.stream(resultSet.getString(4)
                                 .split(", ")).map(String::trim).collect(Collectors.toCollection(ArrayList::new))
                                 : new ArrayList<>(),
                         resultSet.getDouble(5), resultSet.getInt(6));
@@ -673,6 +682,7 @@ public class ConcensionarioService {
     /**
      * Esta función va a escribir en .txt un resumen de la base de datos, como
      * el número de coches entre otras cosas
+     *
      * @param mysql el tipo de base de datos
      * @throws IOException
      * @throws SQLException

@@ -83,7 +83,7 @@ public class SQLSentences {
             where c.id_propietario is NOT NULL;""";
     // Consulta, muestra un listado de los coches que tienen propietarios
     public static final String SQL_COCHES_CON_PROPIETARIO_JOIN = """
-            select c.matricula, c.marca, c.modelo, c.extras, c.precio
+            select c.matricula, c.marca, c.modelo, c.extras, c.precio, c.id_propietario
             from coches c
             join propietarios p on c.id_propietario = p.id_propietario;""";
     // Insertar propietario
