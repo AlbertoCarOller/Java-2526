@@ -70,7 +70,7 @@ public class ConcensionarioService {
      * Esta función va a crear el esquema de la base de datos,
      * en caso de que ya exista la base de datos, la elimina
      *
-     * @throws SQLException
+     * @throws SQLException lanza la excepción en caso de error
      */
     private void crearEsquema() throws SQLException {
         try (Connection connection = connCont.getConnectionVacia()) {
@@ -84,7 +84,7 @@ public class ConcensionarioService {
      * Esta función va a crear las 3 tablas que conforman
      * la estructura de la base de datos
      *
-     * @throws SQLException
+     * @throws SQLException lanza la excepción en caso de error
      */
     private void crearTablasMySQL() throws SQLException {
         // Creamos la conexión nula
@@ -122,7 +122,7 @@ public class ConcensionarioService {
     /**
      * Esta función va a crear las tablas necesarias en SQLite
      *
-     * @throws SQLException
+     * @throws SQLException lanza la excepción en caso de error
      */
     private void crearTablasSQLite() throws SQLException {
         // Obtenemos la conexión en null
@@ -160,7 +160,7 @@ public class ConcensionarioService {
      *
      * @param coches la lista de coches a insertar
      * @param mysql  si la conexión va a ser con MySQL o no
-     * @throws SQLException
+     * @throws SQLException lanza la excepción en caso de error
      */
     private void insertarDatosCSV(List<Coche> coches, Boolean mysql) throws SQLException {
         // Creamos una conexión
@@ -213,7 +213,7 @@ public class ConcensionarioService {
      * a partir cada línea del CSV
      *
      * @return una lista de coches
-     * @throws IOException
+     * @throws IOException lanza la excepción en caso de error
      */
     private List<Coche> importarCochesCSV() throws IOException {
         // Creamos la lista a devolver
@@ -247,8 +247,8 @@ public class ConcensionarioService {
      *
      * @param mysql si la conexión es mysql o no
      * @return true si la conexión es correcta
-     * @throws SQLException
-     * @throws IOException
+     * @throws SQLException lanza la excepción en caso de error
+     * @throws IOException lanza la excepción en caso de error
      */
     public boolean iniciarDataBase(Boolean mysql) throws SQLException, IOException {
         Boolean conexionCorrecta; // Si la conexión es correcta
@@ -277,8 +277,8 @@ public class ConcensionarioService {
      * @param extras    los extras a insertar
      * @param precio    el precio del coche
      * @param mysql     si se hace en la conexión MySQL o SQLite
-     * @throws ConcesionarioExcepcion
-     * @throws SQLException
+     * @throws ConcesionarioExcepcion lanza la excepción en caso de error
+     * @throws SQLException lanza la excepción en caso de error
      */
     public void insertarCoche(String matricula, String marca, String modelo, List<String> extras, double precio, boolean mysql)
             throws ConcesionarioExcepcion, SQLException {
@@ -309,7 +309,7 @@ public class ConcensionarioService {
      * @param mysql        la conexión
      * @param propietarios con o sin propietarios
      * @return una lista de coches
-     * @throws SQLException
+     * @throws SQLException lanza la excepción en caso de error
      */
     public List<Coche> listarCoches(boolean mysql, boolean propietarios) throws SQLException {
         // La lista de coches a devolver como Strings para no transformarlos a objetos
@@ -335,7 +335,7 @@ public class ConcensionarioService {
      *
      * @param rs el ResultSet
      * @return una lista con los coches formateados como Strings
-     * @throws SQLException
+     * @throws SQLException lanza la excepción en caso de error
      */
     private List<Coche> obtenerListaCoches(ResultSet rs) throws SQLException {
         // Lista vacía
@@ -362,8 +362,8 @@ public class ConcensionarioService {
      * @param nombre    el nombre
      * @param apellidos los apellidos
      * @param telefono  el teléfono
-     * @throws SQLException
-     * @throws ConcesionarioExcepcion
+     * @throws SQLException lanza la excepción en caso de error
+     * @throws ConcesionarioExcepcion lanza la excepción en caso de error
      */
     public void insertarPropietario(boolean mysql, String dni, String nombre, String apellidos, String telefono)
             throws SQLException, ConcesionarioExcepcion {
@@ -391,7 +391,7 @@ public class ConcensionarioService {
      *
      * @param mysql si quiere mysql o sqlite
      * @return la conexión
-     * @throws SQLException
+     * @throws SQLException lanza la excepción en caso de error
      */
     private Connection elegirConexion(boolean mysql) throws SQLException {
         if (mysql) return connCont.getConnectionMySQL();
@@ -404,8 +404,8 @@ public class ConcensionarioService {
      *
      * @param matricula la matrícula del coche a buscar
      * @param mysql     si quiere mysql o sqlite
-     * @throws ConcesionarioExcepcion
-     * @throws SQLException
+     * @throws ConcesionarioExcepcion lanza la excepción en caso de error
+     * @throws SQLException lanza la excepción en caso de error
      */
     public void borrarCoche(String matricula, boolean mysql) throws ConcesionarioExcepcion, SQLException {
         // Comprobamos que el campo matrícula no esté vacío
@@ -444,8 +444,8 @@ public class ConcensionarioService {
      * @param extras    los extras nuevos, o no
      * @param precio    el precio nuevo o no
      * @param mysql     si es mysql o sqlite
-     * @throws ConcesionarioExcepcion
-     * @throws SQLException
+     * @throws ConcesionarioExcepcion lanza la excepción en caso de error
+     * @throws SQLException lanza la excepción en caso de error
      */
     public void modificarCoche(String matricula, String marca, String modelo, List<String> extras, double precio, boolean mysql)
             throws ConcesionarioExcepcion, SQLException {
@@ -490,7 +490,7 @@ public class ConcensionarioService {
      * @param matricula  la matrícula para buscar al coche
      * @param connection la conexión con la que se está trabajando
      * @return el objeto Coche
-     * @throws SQLException
+     * @throws SQLException lanza la excepción en caso de error
      */
     public Coche obtenerCoche(String matricula, Connection connection) throws SQLException {
         // Creamos un PreparedStatement
@@ -521,8 +521,8 @@ public class ConcensionarioService {
      * @param dniComprador   el dni del comprador
      * @param montoEconomico el monto económico
      * @param mysql          el tipo de conexión
-     * @throws ConcesionarioExcepcion
-     * @throws SQLException
+     * @throws ConcesionarioExcepcion lanza la excepción en caso de error
+     * @throws SQLException lanza la excepción en caso de error
      */
     public void traspaso(String matriculaCoche, String dniComprador, double montoEconomico, boolean mysql)
             throws ConcesionarioExcepcion, SQLException {
@@ -571,7 +571,7 @@ public class ConcensionarioService {
      * @param dni        el dni de la persona. en este caso del comprador
      * @param connection la conexión con la base de datos
      * @return el id del comprador
-     * @throws SQLException
+     * @throws SQLException lanza la excepción en caso de error
      */
     private int comprobarId(String dni, Connection connection) throws SQLException {
         // Creamos un PreparedStatement
@@ -593,7 +593,7 @@ public class ConcensionarioService {
      * @param coche          el coche a insertar (la matrícula)
      * @param idComprador    el id del comprador
      * @param montoEconomico el precio de compra del coche
-     * @throws SQLException
+     * @throws SQLException lanza la excepción en caso de error
      */
     private void insertarTraspaso(Connection connection, Coche coche, int idComprador, double montoEconomico)
             throws SQLException {
@@ -617,7 +617,7 @@ public class ConcensionarioService {
      * @param connection    la conexión a la base de datos
      * @param idPropietario el id nuevo del propietario
      * @param matricula     la matrícula del coche al que hay que actualizarle el campo
-     * @throws SQLException
+     * @throws SQLException lanza la excepción en caso de error
      */
     private void actualizarIdPropietarioCoche(Connection connection, int idPropietario, String matricula)
             throws SQLException {
@@ -636,8 +636,8 @@ public class ConcensionarioService {
      *
      * @param marca la marca de los vehículos a buscar
      * @return una lista de los coches formateados como Strings
-     * @throws SQLException
-     * @throws ConcesionarioExcepcion
+     * @throws SQLException lanza la excepción en caso de error
+     * @throws ConcesionarioExcepcion lanza la excepción en caso de error
      */
     public List<Coche> procedimientoAlmacenado(String marca) throws SQLException, ConcesionarioExcepcion {
         if (marca.isBlank()) {
@@ -667,7 +667,7 @@ public class ConcensionarioService {
      * existente
      *
      * @param connection la conexion con la base de datos
-     * @throws SQLException
+     * @throws SQLException lanza la excepción en caso de error
      */
     private void crearProcedimientoAlmacenado(Connection connection) throws SQLException {
         // Creamos el procedimiento almacenado
@@ -684,8 +684,8 @@ public class ConcensionarioService {
      * el número de coches entre otras cosas
      *
      * @param mysql el tipo de base de datos
-     * @throws IOException
-     * @throws SQLException
+     * @throws IOException lanza la excepción en caso de error
+     * @throws SQLException lanza la excepción en caso de error
      */
     public void generarResumen(boolean mysql) throws IOException, SQLException {
         // Obtenemos todos los coches de la base de datos
@@ -702,7 +702,7 @@ public class ConcensionarioService {
      *
      * @param mysql si la conexión deber ser mysql o sqlite
      * @return el número de coches
-     * @throws SQLException
+     * @throws SQLException lanza la excepción en caso de error
      */
     private int numCoches(boolean mysql) throws SQLException {
         try (Connection connection = elegirConexion(mysql)) {
@@ -722,7 +722,7 @@ public class ConcensionarioService {
      *
      * @param mysql el tipo de conexión
      * @return una lista de todos los coches
-     * @throws SQLException
+     * @throws SQLException lanza la excepción en caso de error
      */
     private List<Coche> obtenerCoches(boolean mysql) throws SQLException {
         // Una lista de coches
@@ -742,7 +742,7 @@ public class ConcensionarioService {
      * una lista de coches que pertenecen a esa marca
      *
      * @param coches la lista de coches de la base de datos
-     * @return
+     * @return lanza la excepción en caso de error
      */
     private Map<String, List<Coche>> cochesPorMarca(List<Coche> coches) {
         return coches.stream().collect(Collectors.groupingBy(Coche::getMarca));
