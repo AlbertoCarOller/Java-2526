@@ -234,7 +234,7 @@ public class ConcensionarioService {
                 // Agregamos el coche
                 coches.add(new Coche(campos.getFirst().trim(), campos.get(1).trim(), campos.get(2).trim(),
                         campos.get(3).isBlank() ? new ArrayList<>() :
-                                Arrays.stream(campos.get(3).split(",")).map(String::trim)
+                                Arrays.stream(campos.get(3).split("\\|")).map(String::trim)
                                         .collect(Collectors.toCollection(ArrayList::new)),
                         campos.get(4).isBlank() ? -1.0 : Double.parseDouble(campos.get(4)), 0));
             }
