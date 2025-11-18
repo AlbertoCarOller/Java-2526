@@ -153,4 +153,13 @@ public class SQLSentences {
             select *
             from coches
             """;
+    // Creamos sentencias de ejemplo de insercción en la tabla de propietarios
+    public static final String SQL_INSERTAR_PROPIETARIOS_EJEMPLO = """
+            INSERT INTO propietarios (dni, nombre, apellidos, telefono) VALUES\s
+            ('12345678A', 'Juan', 'Pérez Gómez', '600111222'),
+            ('87654321B', 'María', 'López Díaz', '611333444'),
+            ('11223344C', 'Carlos', 'Ruiz Fernández', '622555777'),
+            ('99887766D', 'Laura', 'Sánchez Romero', '633888999'),
+            ('55443322E', 'Sofía', 'Martín Vega', '644777111');
+            """;
 }

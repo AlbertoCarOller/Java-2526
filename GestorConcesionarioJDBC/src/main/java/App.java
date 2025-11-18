@@ -127,6 +127,8 @@ public class App {
             System.out.println("Error de BBDD: No se pudo inicializar la base de datos.");
             System.out.println(e.getMessage());
             return null;
+        } catch (ConcesionarioExcepcion e) {
+            throw new RuntimeException(e);
         }
     }
 

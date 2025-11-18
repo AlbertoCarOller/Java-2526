@@ -16,8 +16,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class ConcensionarioService {
-    private ConnectionController connCont;
-    private Properties prop;
+    private final ConnectionController connCont;
+    private final Properties prop;
 
     public ConcensionarioService() throws IOException {
         connCont = new ConnectionController(); // -> Controlador de las conexiones con las bases de datos
@@ -41,29 +41,23 @@ public class ConcensionarioService {
     /**
      * Se comprueba que la conexión se ha realizado correctamente con MySQL a la base de datos
      *
-     * @return true si la conexión funciona
      * @throws SQLException en caso de que la conexión no funcione, por lo que no devolverá nada
      */
-    private Boolean comprobarConexionMySQL() throws SQLException {
+    private void comprobarConexionMySQL() throws SQLException {
         // Se crea el esquema para comprobar la conexión
         crearEsquema();
         try (Connection connection = connCont.getConnectionMySQL()) {
         }
-        // Si no ha saltado excepción devolverá true
-        return true;
     }
 
     /**
      * Se comprueba que la conexión se ha realizado correctamente con SQLite
      *
-     * @return true si la conexión funciona
      * @throws SQLException en caso de que la conexión no funcione, por lo que no devolverá nada
      */
-    private Boolean comprobarConexionSQLite() throws SQLException {
+    private void comprobarConexionSQLite() throws SQLException {
         try (Connection connection = connCont.getConnectionSQLite()) {
         }
-        // Si no ha saltado excepción devolverá true
-        return true;
     }
 
     /**
@@ -162,7 +156,7 @@ public class ConcensionarioService {
      * @param mysql  si la conexión va a ser con MySQL o no
      * @throws SQLException lanza la excepción en caso de error
      */
-    private void insertarDatosCSV(List<Coche> coches, Boolean mysql) throws SQLException {
+    private void insertarDatosCSV(List<Coche> coches, Boolean mysql) throws SQLException, ConcesionarioExcepcion {
         // Creamos una conexión
         Connection connection = null;
         try {
@@ -174,6 +168,16 @@ public class ConcensionarioService {
                 // Ponemos el auto-commit a false
                 connection.setAutoCommit(false);
                 for (Coche coche : coches) {
+                    /* Comprobamos cada campo del coche para saltar excepción en caso de que un campo que debe ser
+                     obligatorio no sea correcto, esté en blanco o el precio en -1, que eso querrá decir que no
+                      tenía precio, por lo que se deberá de saltar excepción*/
+                    String matricula = coche.getMatricula();
+                    String marca = coche.getMarca();
+                    String modelo = coche.getModelo();
+                    double precio = coche.getPrecio();
+                    if (matricula.isBlank() || marca.isBlank() || modelo.isBlank() || precio == -1.0) {
+                        throw new ConcesionarioExcepcion("Algún campo de algún coche es inválido");
+                    }
                     preparedStatement.setString(1, coche.getMatricula());
                     preparedStatement.setString(2, coche.getMarca());
                     preparedStatement.setString(3, coche.getModelo());
@@ -223,19 +227,16 @@ public class ConcensionarioService {
         // Quitamos la primera hora
         lineas.removeFirst();
         lineas.forEach(line -> {
-            // Lista de los campos
-            List<String> campos = Arrays.stream(line.split(";"))
-                    .filter(c -> !c.isBlank()).toList();
-            // Si hay 4 campos significa que no hay extras
-            if (campos.size() == 4) {
-                coches.add(new Coche(campos.getFirst().trim(), campos.get(1).trim(), campos.get(2).trim(), new ArrayList<>(),
-                        Double.parseDouble(campos.getLast().trim()), 0));
-
-                // Si hay 5 campos significa que tiene extras
-            } else if (campos.size() == 5) {
+            // Lista de los campos, guardamos el campo vacío en caso de que haya para comprobar qué campo es
+            List<String> campos = Arrays.stream(line.split(";")).toList();
+            // Se comprueba que tenga 5 campos
+            if (campos.size() == 5) {
+                // Agregamos el coche
                 coches.add(new Coche(campos.getFirst().trim(), campos.get(1).trim(), campos.get(2).trim(),
-                        Arrays.stream(campos.get(3).trim().split("\\|")).map(String::trim).collect(Collectors
-                                .toCollection(ArrayList::new)), Double.parseDouble(campos.getLast().trim()), 0));
+                        campos.get(3).isBlank() ? new ArrayList<>() :
+                                Arrays.stream(campos.get(3).split(",")).map(String::trim)
+                                        .collect(Collectors.toCollection(ArrayList::new)),
+                        campos.get(4).isBlank() ? -1.0 : Double.parseDouble(campos.get(4)), 0));
             }
         });
         return coches; // -> Devolvemos la lista con los coches ya formados
@@ -246,24 +247,23 @@ public class ConcensionarioService {
      * dependiendo del tipo de conexión que se quiera se hará de una forma u otra
      *
      * @param mysql si la conexión es mysql o no
-     * @return true si la conexión es correcta
      * @throws SQLException lanza la excepción en caso de error
-     * @throws IOException lanza la excepción en caso de error
+     * @throws IOException  lanza la excepción en caso de error
      */
-    public boolean iniciarDataBase(Boolean mysql) throws SQLException, IOException {
-        Boolean conexionCorrecta; // Si la conexión es correcta
+    public void iniciarDataBase(Boolean mysql) throws SQLException, IOException, ConcesionarioExcepcion {
         // Si nos queremos conectar con MySQL
         if (mysql) {
-            conexionCorrecta = comprobarConexionMySQL();
+            comprobarConexionMySQL();
             crearTablasMySQL(); // -> Creamos las tablas MySQL
             insertarDatosCSV(importarCochesCSV(), true); // -> Insertamos los datos del CSV
             // Nos conectamos con SQLite
         } else {
-            conexionCorrecta = comprobarConexionSQLite();
+            comprobarConexionSQLite();
             crearTablasSQLite(); // -> Creamos las tablas SQLite
             insertarDatosCSV(importarCochesCSV(), false); // -> Insertamos los datos del CSV
         }
-        return conexionCorrecta;
+        // Se insertan propietarios de ejemplo al iniciar la base de datos
+        insertarPropietarioEjemplo(mysql);
     }
 
     /**
@@ -278,12 +278,12 @@ public class ConcensionarioService {
      * @param precio    el precio del coche
      * @param mysql     si se hace en la conexión MySQL o SQLite
      * @throws ConcesionarioExcepcion lanza la excepción en caso de error
-     * @throws SQLException lanza la excepción en caso de error
+     * @throws SQLException           lanza la excepción en caso de error
      */
     public void insertarCoche(String matricula, String marca, String modelo, List<String> extras, double precio, boolean mysql)
             throws ConcesionarioExcepcion, SQLException {
         // Comprobamos si los campos son correctos
-        if (marca.isEmpty() || modelo.isEmpty() || matricula.isEmpty()) {
+        if (marca.isEmpty() || modelo.isEmpty() || matricula.isEmpty() || precio < 0) {
             throw new ConcesionarioExcepcion("Algún campo es inválido");
         }
         try (Connection connection = elegirConexion(mysql)) {
@@ -354,6 +354,33 @@ public class ConcensionarioService {
     }
 
     /**
+     * Esta función va a insertar propietarios de ejemplo en la base de datos,
+     * al inicializarla
+     *
+     * @param mysql si es mysql o sqlite
+     * @throws SQLException si hay algún error
+     */
+    private void insertarPropietarioEjemplo(boolean mysql) throws SQLException {
+        Connection connection = null;
+        try {
+            connection = elegirConexion(mysql);
+            connection.setAutoCommit(false);
+            try (Statement statement = connection.createStatement()) {
+                statement.executeUpdate(SQLSentences.SQL_INSERTAR_PROPIETARIOS_EJEMPLO);
+                connection.commit();
+            }
+        } catch (SQLException e) {
+            if (connection != null) {
+                connection.rollback();
+                connection.setAutoCommit(true);
+            }
+
+        } finally {
+            if (connection != null) connection.close();
+        }
+    }
+
+    /**
      * Esta función va a permitir insertar un propietario en cualquier base de datos,
      * esto dependerá de lo que elija el usuario
      *
@@ -362,7 +389,7 @@ public class ConcensionarioService {
      * @param nombre    el nombre
      * @param apellidos los apellidos
      * @param telefono  el teléfono
-     * @throws SQLException lanza la excepción en caso de error
+     * @throws SQLException           lanza la excepción en caso de error
      * @throws ConcesionarioExcepcion lanza la excepción en caso de error
      */
     public void insertarPropietario(boolean mysql, String dni, String nombre, String apellidos, String telefono)
@@ -405,7 +432,7 @@ public class ConcensionarioService {
      * @param matricula la matrícula del coche a buscar
      * @param mysql     si quiere mysql o sqlite
      * @throws ConcesionarioExcepcion lanza la excepción en caso de error
-     * @throws SQLException lanza la excepción en caso de error
+     * @throws SQLException           lanza la excepción en caso de error
      */
     public void borrarCoche(String matricula, boolean mysql) throws ConcesionarioExcepcion, SQLException {
         // Comprobamos que el campo matrícula no esté vacío
@@ -445,7 +472,7 @@ public class ConcensionarioService {
      * @param precio    el precio nuevo o no
      * @param mysql     si es mysql o sqlite
      * @throws ConcesionarioExcepcion lanza la excepción en caso de error
-     * @throws SQLException lanza la excepción en caso de error
+     * @throws SQLException           lanza la excepción en caso de error
      */
     public void modificarCoche(String matricula, String marca, String modelo, List<String> extras, double precio, boolean mysql)
             throws ConcesionarioExcepcion, SQLException {
@@ -522,7 +549,7 @@ public class ConcensionarioService {
      * @param montoEconomico el monto económico
      * @param mysql          el tipo de conexión
      * @throws ConcesionarioExcepcion lanza la excepción en caso de error
-     * @throws SQLException lanza la excepción en caso de error
+     * @throws SQLException           lanza la excepción en caso de error
      */
     public void traspaso(String matriculaCoche, String dniComprador, double montoEconomico, boolean mysql)
             throws ConcesionarioExcepcion, SQLException {
@@ -636,7 +663,7 @@ public class ConcensionarioService {
      *
      * @param marca la marca de los vehículos a buscar
      * @return una lista de los coches formateados como Strings
-     * @throws SQLException lanza la excepción en caso de error
+     * @throws SQLException           lanza la excepción en caso de error
      * @throws ConcesionarioExcepcion lanza la excepción en caso de error
      */
     public List<Coche> procedimientoAlmacenado(String marca) throws SQLException, ConcesionarioExcepcion {
@@ -684,7 +711,7 @@ public class ConcensionarioService {
      * el número de coches entre otras cosas
      *
      * @param mysql el tipo de base de datos
-     * @throws IOException lanza la excepción en caso de error
+     * @throws IOException  lanza la excepción en caso de error
      * @throws SQLException lanza la excepción en caso de error
      */
     public void generarResumen(boolean mysql) throws IOException, SQLException {

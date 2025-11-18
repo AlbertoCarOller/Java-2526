@@ -1,3 +1,3 @@
-Número de cohes: 4
-Coches por marca:{Ferrari=[Coche{matricula='8796HC', marca='Ferrari', modelo='76', extras=[Sin extras], precio=1900000.0, idPropietario=0}], Seat=[Coche{matricula='3456JKL', marca='Seat', modelo='Ibiza', extras=[Climatizador, Sensor de aparcamiento], precio=17999.99, idPropietario=2}], Toyota=[Coche{matricula='1122QRS', marca='Toyota', modelo='Paris', extras=[Llantas de aleación, Techo solar, Cámara trasera], precio=21999.99, idPropietario=0}], Peugeot=[Coche{matricula='7890MNP', marca='Peugeot', modelo='208', extras=[Navegador GPS], precio=19999.99, idPropietario=2}]}
-Extra más repetido:[Llantas de aleación, Sensor de aparcamiento, Climatizador, Techo solar, Cámara trasera, Navegador GPS, Sin extras]
+Número de cohes: 3
+Coches por marca:{Seat=[Coche{matricula='3456JKL', marca='Seat', modelo='Ibiza', extras=[Climatizador|Sensor de aparcamiento], precio=17999.99, idPropietario=0}], Lamborguini=[Coche{matricula='34764ZX', marca='Lamborguini', modelo='909', extras=[espatula], precio=897623.0, idPropietario=0}], Peugeot=[Coche{matricula='7890MNP', marca='Peugeot', modelo='69', extras=[pistola de bolas], precio=19999.99, idPropietario=0}]}
+Extra más repetido:[Climatizador|Sensor de aparcamiento, espatula, pistola de bolas]
