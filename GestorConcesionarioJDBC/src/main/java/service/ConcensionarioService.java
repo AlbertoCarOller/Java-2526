@@ -714,13 +714,23 @@ public class ConcensionarioService {
      * @throws IOException  lanza la excepción en caso de error
      * @throws SQLException lanza la excepción en caso de error
      */
-    public void generarResumen(boolean mysql) throws IOException, SQLException {
+    public void generarResumen(boolean mysql) throws IOException, SQLException, ConcesionarioExcepcion {
         // Obtenemos todos los coches de la base de datos
         List<Coche> coches = obtenerCoches(mysql);
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(prop.getProperty("resumenTXT")))) {
-            bw.write("Número de cohes: " + numCoches(mysql) + "\n" +
-                    "Coches por marca:" + cochesPorMarca(coches) + "\n" +
-                    "Extra más repetido:" + extraMasRepetido(coches));
+            bw.write("Número de coches: " + numCoches(mysql) + "\n\n");
+            bw.write("Coches por marca: \n");
+            cochesPorMarca(coches).forEach((s, cocheList) -> {
+                try {
+                    bw.write(s + "-> " + cocheList + "\n");
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+            bw.write("\n");
+            bw.write("Extra más repetido: " + extraMasRepetido(coches));
+        } catch (RuntimeException e) {
+            throw new ConcesionarioExcepcion("Error al generar resumen: " + e.getMessage());
         }
     }
 

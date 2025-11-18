@@ -1,3 +1,0 @@
-Número de cohes: 3
-Coches por marca:{Seat=[Coche{matricula='3456JKL', marca='Seat', modelo='Ibiza', extras=[Climatizador|Sensor de aparcamiento], precio=17999.99, idPropietario=0}], Lamborguini=[Coche{matricula='34764ZX', marca='Lamborguini', modelo='909', extras=[espatula], precio=897623.0, idPropietario=0}], Peugeot=[Coche{matricula='7890MNP', marca='Peugeot', modelo='69', extras=[pistola de bolas], precio=19999.99, idPropietario=0}]}
-Extra más repetido:[Climatizador|Sensor de aparcamiento, espatula, pistola de bolas]
