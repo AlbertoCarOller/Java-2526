@@ -224,7 +224,7 @@ public class ConcensionarioService {
         List<Coche> coches = new ArrayList<>();
         // Obtenemos todas las líneas del fichero
         List<String> lineas = Files.readAllLines(Path.of(prop.getProperty("pathCSV")));
-        // Quitamos la primera hora
+        // Quitamos la primera fila
         lineas.removeFirst();
         lineas.forEach(line -> {
             // Lista de los campos, guardamos el campo vacío en caso de que haya para comprobar qué campo es
