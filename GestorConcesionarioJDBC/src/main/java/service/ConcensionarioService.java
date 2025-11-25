@@ -62,7 +62,7 @@ public class ConcensionarioService {
 
     /**
      * Esta función va a crear el esquema de la base de datos,
-     * en caso de que ya exista la base de datos, la elimina
+     * en caso de que ya exista la base de datos, no hace nada
      *
      * @throws SQLException lanza la excepción en caso de error
      */
