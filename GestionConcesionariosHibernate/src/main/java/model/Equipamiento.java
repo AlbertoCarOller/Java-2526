@@ -1,9 +1,9 @@
 package model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 public class Equipamiento {
@@ -12,6 +12,20 @@ public class Equipamiento {
     private Long id;
     private String nombre;
     private double coste;
+
+    // La lista de quipamientos que puede tener uno o varios coches
+    @ManyToMany(mappedBy = "equipamientos")
+    private List<Coche> coches;
+
+    // Creamos los constructores
+    public Equipamiento() {
+    }
+
+    public Equipamiento(String nombre, double coste) {
+        this.nombre = nombre;
+        this.coste = coste;
+        this.coches = new ArrayList<>();
+    }
 
     public Long getId() {
         return id;

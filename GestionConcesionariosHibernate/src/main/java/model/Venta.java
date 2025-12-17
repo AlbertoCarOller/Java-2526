@@ -6,7 +6,6 @@ import java.time.LocalDate;
 
 @Entity
 public class Venta {
-    // TODO: una venta un coche, relación 1:1
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -22,6 +21,11 @@ public class Venta {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "propietario_id")
     private Propietario propietario;
+
+    // Relación 1:1 con Coche
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "coche_matricula")
+    private Coche coche;
 
     public Venta() {
     }
