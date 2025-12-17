@@ -1,0 +1,8 @@
+Número de coches: 3
+
+Coches por marca: 
+Ferrari-> [Coche{matricula='8776MBC', marca='Ferrari', modelo='p56', extras=[Sin extras], precio=18000.0, idPropietario=0, anio=2008}]
+Seat-> [Coche{matricula='3456JKL', marca='Seat', modelo='Ibiza', extras=[Climatizador, Sensor de aparcamiento], precio=17999.99, idPropietario=0, anio=2005}]
+Peugeot-> [Coche{matricula='7890MNP', marca='Peugeot', modelo='208', extras=[Sin extras], precio=19999.99, idPropietario=4, anio=1999}]
+
+Extra más repetido: [Sin extras]

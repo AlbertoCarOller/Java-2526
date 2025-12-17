@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence xmlns="https://jakarta.ee/xml/ns/persistence"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence https://jakarta.ee/xml/ns/persistence/persistence_3_0.xsd"
+             version="3.0">
+
+    <!-- Nombre de la Unidad de Persistencia (usado en el Main.java) -->
+    <persistence-unit name="miUnidadPersistencia">
+
+        <!-- Clase proveedora de la implementación (Hibernate) -->
+        <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+
+        <!-- Aquí se van añadiendo las clases necesarias -->
+        <class>model.Concesionario</class>
+        <class>model.Venta</class>
+        <class>model.Propietario</class>
+        <class>model.Coche</class>
+
+        <properties>
+            <!-- 1. CONFIGURACIÓN JDBC (CONEXIÓN) -->
+            <!-- Cambia 'mibd_ra3' por el nombre de tu base de datos creada en MySQL -->
+            <!-- Con createDatabaseIfNotExists=true se crea el esquema de la base de datos en caso de que no exista -->
+            <!-- &amp; Se utiliza para crear separaciones, para indicar 'y', es decir que hay algo más -->
+            <property name="jakarta.persistence.jdbc.url"
+                      value="jdbc:mysql://localhost:3307/concesionario?serverTimezone=UTC&amp;createDatabaseIfNotExist=true"/>
+            <property name="jakarta.persistence.jdbc.user" value="root"/>
+            <!-- Pon aquí tu contraseña de MySQL, si no tienes, déjalo vacío -->
+            <property name="jakarta.persistence.jdbc.password" value="root"/>
+            <property name="jakarta.persistence.jdbc.driver" value="com.mysql.cj.jdbc.Driver"/>
+
+            <!-- 2. CONFIGURACIÓN DE HIBERNATE -->
+            <!-- Muestra las consultas SQL en la consola (Muy útil para aprender) -->
+            <property name="hibernate.show_sql" value="true"/>
+            <!-- Formatea el SQL para que sea legible -->
+            <property name="hibernate.format_sql" value="true"/>
+            <!-- Resalta la sintaxis del SQL en consola -->
+            <property name="hibernate.highlight_sql" value="true"/>
+
+            <!-- 3. ESTRATEGIA DE CREACIÓN DE TABLAS (DDL) -->
+            <!-- 'update': Crea la tabla si no existe, o la actualiza si cambias la clase Java.
+                 Otras opciones: 'create-drop' (borra al cerrar), 'validate' (solo chequea). -->
+            <property name="hibernate.hbm2ddl.auto" value="create"/>
+
+            <!-- Dialecto: Ayuda a Hibernate a optimizar SQL para MySQL 8 -->
+            <property name="hibernate.dialect" value="org.hibernate.dialect.MySQLDialect"/>
+        </properties>
+
+    </persistence-unit>
+</persistence>
