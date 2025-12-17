@@ -30,6 +30,8 @@ public class Venta {
     public Venta() {
     }
 
+    /* IMPORTANTE: al constructor no se le pasan los objetos ya que estos forman parte de la relación y esta
+     se va creando poco */
     public Venta(LocalDate fecha, double precioFinal) {
         this.fecha = fecha;
         this.precioFinal = precioFinal;
@@ -69,5 +71,13 @@ public class Venta {
 
     public void setPropietario(Propietario propietario) {
         this.propietario = propietario;
+    }
+
+    public Coche getCoche() {
+        return coche;
+    }
+
+    public void setCoche(Coche coche) {
+        this.coche = coche;
     }
 }

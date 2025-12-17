@@ -1,9 +1,8 @@
 package model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
+
+import java.util.List;
 
 @Entity
 public class Mecanico {
@@ -12,6 +11,30 @@ public class Mecanico {
     private Long id;
     private String nombre;
     private String especialidad;
+
+    // Un mecánico hace varias reparaciones
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "mecanico")
+    private List<Reparacion> reparaciones;
+
+    // Creamos los constructores
+    public Mecanico() {
+    }
+
+    public Mecanico(String nombre, String especialidad) {
+        this.nombre = nombre;
+        this.especialidad = especialidad;
+    }
+
+    // Creamos las funciones de ayuda
+    public void addReparacion(Reparacion reparacion) {
+        reparaciones.add(reparacion);
+        reparacion.setMecanico(this);
+    }
+
+    public void removeReparacion(Reparacion reparacion) {
+        reparaciones.remove(reparacion);
+        reparacion.setMecanico(null);
+    }
 
     public Long getId() {
         return id;
@@ -31,5 +54,9 @@ public class Mecanico {
 
     public void setEspecialidad(String especialidad) {
         this.especialidad = especialidad;
+    }
+
+    public List<Reparacion> getReparaciones() {
+        return reparaciones;
     }
 }

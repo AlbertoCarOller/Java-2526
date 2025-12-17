@@ -73,4 +73,8 @@ public class Propietario {
     public List<Venta> getVentas() {
         return ventas;
     }
+
+    public List<Coche> getCoches() {
+        return coches;
+    }
 }

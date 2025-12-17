@@ -21,6 +21,18 @@ public class Equipamiento {
     public Equipamiento() {
     }
 
+    // Funciones de ayuda
+    public void addCoche(Coche coche) {
+        this.coches.add(coche);
+        coche.getEquipamientos().add(this);
+    }
+
+    public void removeCoche(Coche coche) {
+        this.coches.remove(coche);
+        coche.getEquipamientos().remove(this);
+
+    }
+
     public Equipamiento(String nombre, double coste) {
         this.nombre = nombre;
         this.coste = coste;
@@ -45,5 +57,9 @@ public class Equipamiento {
 
     public void setCoste(double coste) {
         this.coste = coste;
+    }
+
+    public List<Coche> getCoches() {
+        return coches;
     }
 }

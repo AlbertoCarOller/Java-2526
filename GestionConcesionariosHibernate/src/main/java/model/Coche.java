@@ -38,6 +38,10 @@ public class Coche {
             inverseJoinColumns = @JoinColumn(name = "equipamiento_id")) // Nombre de la columna de la inversa
     private List<Equipamiento> equipamientos;
 
+    // La lista de reparaciones que puede tener un coche
+    @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL, mappedBy = "coche")
+    private List<Reparacion> reparaciones;
+
     // Creamos el constructor vacío
     public Coche() {
     }
@@ -49,6 +53,18 @@ public class Coche {
         this.modelo = modelo;
         this.precioBase = precioBase;
         this.equipamientos = new ArrayList<>();
+        this.reparaciones = new ArrayList<>();
+    }
+
+    // Funciones de ayuda
+    public void addEquipamiento(Equipamiento equipamiento) {
+        this.equipamientos.add(equipamiento);
+        equipamiento.getCoches().add(this);
+    }
+
+    public void removeEquipamiento(Equipamiento equipamiento) {
+        this.equipamientos.remove(equipamiento);
+        equipamiento.getCoches().remove(this);
     }
 
     public String getMatricula() {
@@ -93,5 +109,21 @@ public class Coche {
 
     public void setPropietario(Propietario propietario) {
         this.propietario = propietario;
+    }
+
+    public Venta getVenta() {
+        return venta;
+    }
+
+    public void setVenta(Venta venta) {
+        this.venta = venta;
+    }
+
+    public List<Equipamiento> getEquipamientos() {
+        return equipamientos;
+    }
+
+    public List<Reparacion> getReparaciones() {
+        return reparaciones;
     }
 }
