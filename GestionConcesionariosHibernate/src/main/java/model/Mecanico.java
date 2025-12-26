@@ -13,7 +13,7 @@ public class Mecanico {
     private String especialidad;
 
     // Un mecánico hace varias reparaciones
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "mecanico")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "mecanico")
     private List<Reparacion> reparaciones;
 
     // Creamos los constructores
@@ -29,11 +29,6 @@ public class Mecanico {
     public void addReparacion(Reparacion reparacion) {
         reparaciones.add(reparacion);
         reparacion.setMecanico(this);
-    }
-
-    public void removeReparacion(Reparacion reparacion) {
-        reparaciones.remove(reparacion);
-        reparacion.setMecanico(null);
     }
 
     public Long getId() {

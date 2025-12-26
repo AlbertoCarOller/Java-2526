@@ -16,6 +16,11 @@ public class GestorService {
         this.entityManagerFactory = EntityManagerController.cargarEntityManagerFactory();
     }
 
+    /* NOTA IMPORTANTE: he decidido no eliminar físicamente los coches, si son vendidos
+    * tendrán un propietario, tampoco se eliminan las ventas o reparaciones, ya que en
+    * una base de datos debemos de tener un histórico de este tipo de cosas, por lo tanto
+    * los orphanRemoval no son necesarios ni los métodos helper de eliminación */
+
     public void cargarDatosPrueba() throws GestorException {
         // Envolvemos el entityManager creado en un try, ya que es AutoCloseable
         try (EntityManager entityManager = entityManagerFactory.createEntityManager()) {

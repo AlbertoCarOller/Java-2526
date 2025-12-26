@@ -13,10 +13,10 @@ public class Propietario {
     private String dni;
     private String nombre;
 
-    @OneToMany(mappedBy = "propietario", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "propietario", cascade = CascadeType.ALL)
     private List<Venta> ventas;
 
-    @OneToMany(mappedBy = "propietario", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "propietario", cascade = CascadeType.ALL)
     private List<Coche> coches;
 
     public Propietario() {
@@ -35,19 +35,9 @@ public class Propietario {
         venta.setPropietario(this);
     }
 
-    public void removeVenta(Venta venta) {
-        this.ventas.remove(venta);
-        venta.setPropietario(null);
-    }
-
     public void addCoche(Coche coche) {
         this.coches.add(coche);
         coche.setPropietario(this);
-    }
-
-    public void removeCoche(Coche coche) {
-        this.coches.remove(coche);
-        coche.setPropietario(null);
     }
 
     public Long getId() {

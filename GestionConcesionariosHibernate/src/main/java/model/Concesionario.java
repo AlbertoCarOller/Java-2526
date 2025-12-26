@@ -19,11 +19,11 @@ public class Concesionario {
      * orphanRemoval = true -> Para eliminar de la BD los hijos que pierdan la relación con su padre
      * mappedBy = "concesionario" -> Esto indica como se llama el atributo en la otra clase, en el lado no propietario */
     // Un concesionario tiene muchos coches
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "concesionario")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "concesionario")
     private List<Venta> ventas;
 
     // Un concesionario tiene muchos coches
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "concesionario")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "concesionario")
     private List<Coche> coches;
 
     // Creamos el constructor vacío
@@ -48,26 +48,10 @@ public class Concesionario {
         venta.setConcesionario(this);
     }
 
-    /**
-     * Esta función va a borrar una venta de la lista
-     * y va a volver a null el concesionario del objeto
-     *
-     * @param venta la venta a borrar
-     */
-    public void removeVenta(Venta venta) {
-        this.ventas.remove(venta);
-        venta.setConcesionario(null);
-    }
-
     // Añadimos los helper de coches
     public void addCoche(Coche coche) {
         this.coches.add(coche);
         coche.setConcesionario(this);
-    }
-
-    public void removeCoche(Coche coche) {
-        this.coches.remove(coche);
-        coche.setConcesionario(null);
     }
 
     public Long getId() {

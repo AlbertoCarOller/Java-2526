@@ -14,7 +14,7 @@ public class Equipamiento {
     private String nombre;
     private double coste;
 
-    // La lista de quipamientos que puede tener uno o varios coches
+    // La lista de equipamientos que puede tener uno o varios coches
     @ManyToMany(mappedBy = "equipamientos")
     private List<Coche> coches;
 
@@ -35,12 +35,6 @@ public class Equipamiento {
         }
         this.coches.add(coche);
         coche.getEquipamientos().add(this);
-    }
-
-    public void removeCoche(Coche coche) {
-        this.coches.remove(coche);
-        coche.getEquipamientos().remove(this);
-
     }
 
     public Long getId() {
