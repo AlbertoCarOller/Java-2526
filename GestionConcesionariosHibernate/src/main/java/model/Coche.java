@@ -19,7 +19,7 @@ public class Coche {
     @JoinColumn(name = "concesionario_id")
     private Concesionario concesionario;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "propietario_id")
     private Propietario propietario;
 
@@ -33,7 +33,7 @@ public class Coche {
      * con la que nos unimos, es decir la inversa. La tabla dueño, es decir la que contiene el join da lo
      * mismo en la práctica cuál elegir, yo en mi caso voy a elegir esta (coche) */
     // En este caso creamos la tabla intermedia 'coche_equipamiento' para unir esta tabla y la de equipamientos
-    @ManyToMany()
+    @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(name = "coche_equipamiento",
             joinColumns = @JoinColumn(name = "coche_matricula"), // -> Nombre de la columna principal
             inverseJoinColumns = @JoinColumn(name = "equipamiento_id")) // Nombre de la columna de la inversa

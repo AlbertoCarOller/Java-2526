@@ -16,6 +16,8 @@
         <class>model.Propietario</class>
         <class>model.Coche</class>
         <class>model.Equipamiento</class>
+        <class>model.Reparacion</class>
+        <class>model.Mecanico</class>
 
         <properties>
             <!-- 1. CONFIGURACIÓN JDBC (CONEXIÓN) -->
