@@ -1,5 +1,6 @@
 package model;
 
+import exception.GestorException;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
@@ -22,7 +23,7 @@ public class Coche {
     @JoinColumn(name = "propietario_id")
     private Propietario propietario;
 
-    // Relación 1:1 con venta, solo se pueden relaciones tablas mediante objetos completos
+    // Relación 1:1 con venta, solo se pueden relacionar tablas mediante objetos completos
     @OneToOne(mappedBy = "coche")
     private Venta venta;
 
@@ -57,7 +58,10 @@ public class Coche {
     }
 
     // Funciones de ayuda
-    public void addEquipamiento(Equipamiento equipamiento) {
+    public void addEquipamiento(Equipamiento equipamiento) throws GestorException {
+        if (this.equipamientos.contains(equipamiento) || equipamiento.getCoches().contains(this)) {
+            throw new GestorException("No se puede añadir el equipamiento al coche porque ya está añadido");
+        }
         this.equipamientos.add(equipamiento);
         equipamiento.getCoches().add(this);
     }

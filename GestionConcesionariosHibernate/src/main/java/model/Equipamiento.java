@@ -1,5 +1,6 @@
 package model;
 
+import exception.GestorException;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
@@ -21,8 +22,17 @@ public class Equipamiento {
     public Equipamiento() {
     }
 
+    public Equipamiento(String nombre, double coste) {
+        this.nombre = nombre;
+        this.coste = coste;
+        this.coches = new ArrayList<>();
+    }
+
     // Funciones de ayuda
-    public void addCoche(Coche coche) {
+    public void addCoche(Coche coche) throws GestorException {
+        if (this.coches.contains(coche) || coche.getEquipamientos().contains(this)) {
+            throw new GestorException("No se puede añadir el equipamiento al coche porque ya está añadido");
+        }
         this.coches.add(coche);
         coche.getEquipamientos().add(this);
     }
@@ -31,12 +41,6 @@ public class Equipamiento {
         this.coches.remove(coche);
         coche.getEquipamientos().remove(this);
 
-    }
-
-    public Equipamiento(String nombre, double coste) {
-        this.nombre = nombre;
-        this.coste = coste;
-        this.coches = new ArrayList<>();
     }
 
     public Long getId() {
