@@ -33,6 +33,7 @@ public class Coche {
      * con la que nos unimos, es decir la inversa. La tabla dueño, es decir la que contiene el join da lo
      * mismo en la práctica cuál elegir, yo en mi caso voy a elegir esta (coche) */
     // En este caso creamos la tabla intermedia 'coche_equipamiento' para unir esta tabla y la de equipamientos
+    // El cascade internamente crea el objeto (persiste) para que cuando se añada un equipamiento al coche, este antes se cree en la bd
     @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(name = "coche_equipamiento",
             joinColumns = @JoinColumn(name = "coche_matricula"), // -> Nombre de la columna principal
