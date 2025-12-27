@@ -7,6 +7,13 @@ import java.util.List;
 
 // Creamos la tabla concesionario
 @Entity
+// Creamos una consulta nombrada para ver si existe el concesionario por el nombre y dirección
+// Importante en JPQL al trabajar con objetos hay que ponerles alias es como crear el nombre de la variable
+@NamedQuery(
+        name = "Concesionario.existeConcesionario",
+        query = "select c from Concesionario c where c.nombre like :nombre and" +
+                " c.direccion like :direccion"
+)
 public class Concesionario {
     // Esta tabla va a tener un id autogenerado (auto-incremental)
     @Id
