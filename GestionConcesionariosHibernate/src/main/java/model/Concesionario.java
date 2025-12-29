@@ -14,6 +14,11 @@ import java.util.List;
         query = "select c from Concesionario c where c.nombre like :nombre and" +
                 " c.direccion like :direccion"
 )
+// Creamos una consulta en la que seleccionamos un concesionario por su id
+@NamedQuery(
+        name = "Concesionario.existentePorID",
+        query = "select c from Concesionario c where c.id = :id"
+)
 public class Concesionario {
     // Esta tabla va a tener un id autogenerado (auto-incremental)
     @Id

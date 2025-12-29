@@ -4,8 +4,13 @@ import exception.GestorException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.PersistenceException;
+import jakarta.persistence.TypedQuery;
 import model.*;
 import util.EntityManagerController;
+
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class GestorService {
     // El gestor va a tener la factoría de EntityManager
@@ -140,7 +145,48 @@ public class GestorService {
         }
     }
 
-    public void darAltaCoche(String matricula, String marca, String modelo, double precioBase) {
-        // TODO: hacer la función
+    /**
+     * Esta función va a dar de alta un coche en un concesionario ya existente,
+     * nos aseguramos de que los campos sean válidos y de que el concesionario
+     * existe mediante su id
+     *
+     * @param matricula       la matrícula del coche
+     * @param marca           la marca del coche
+     * @param modelo          el modelo del coche
+     * @param precioBase      el precio base que va a tener el coche
+     * @param idConcesionario el id del concesionario a añadir el coche
+     * @throws GestorException      En caso de que el concesionario no exista o algún campo del coche sea inválido
+     * @throws PersistenceException en caso de que haya un error con el EntityManager
+     */
+    public void darAltaCoche(String matricula, String marca, String modelo, double precioBase, int idConcesionario)
+            throws GestorException, PersistenceException {
+        // Creamos un regex para verificar que la matrícula sea válida
+        Pattern pattern = Pattern.compile("^[0-9]{4}[A-Z]{3}$");
+        Matcher matcher = pattern.matcher(matricula);
+        // Comprobamos si son válidos los diferentes campos del coche
+        if (matricula.isEmpty() || marca.isEmpty() || modelo.isEmpty() || precioBase <= 0 || !matcher.matches()) {
+            throw new GestorException("Algún campo del coche es inválido");
+        }
+        try (EntityManager entityManager = entityManagerFactory.createEntityManager()) {
+            // Comenzamos la transacción
+            entityManager.getTransaction().begin();
+            // Creamos un TypedQuery, es decir una consulta tipada para asegurarle a Java que el objeto a recibir es un Concesionario
+            TypedQuery<Concesionario> typedQuery = entityManager.createNamedQuery("Concesionario.existentePorID", Concesionario.class)
+                    .setParameter("id", idConcesionario);
+            // Guardamos la lista de concesionario (que debe de haber 0 o 1)
+            List<Concesionario> concesionarios = typedQuery.getResultList();
+            // Comprobamos si existe el concesionario con el id pasado
+            if (concesionarios.isEmpty()) {
+                throw new GestorException("El concesionario con id " + idConcesionario + " no existe");
+            }
+            // Obtenemos el concesionario
+            Concesionario concesionario = concesionarios.getFirst();
+            /* Agregamos el coche al concesionario, como el objeto ya (el concesionario) ya forma parte de la base
+             * de datos, ya está vigilado/manegado por Hibernate y tenemos el cascade, al añadir el coche en un objeto ya
+             * manejado, el coche internamente se crea también (persiste, se crea realmente cuando se hace el commit) */
+            concesionario.addCoche(new Coche(matricula, marca, modelo, precioBase));
+            // Terminamos la transacción
+            entityManager.getTransaction().commit();
+        }
     }
 }
