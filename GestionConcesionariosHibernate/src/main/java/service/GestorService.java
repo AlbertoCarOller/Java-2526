@@ -189,4 +189,9 @@ public class GestorService {
             entityManager.getTransaction().commit();
         }
     }
+
+    public double instalarExtra(String matriculaCoche, int idEquipamiento) throws GestorException, PersistenceException {
+        // TODO: hacer la función
+        return 0;
+    }
 }
