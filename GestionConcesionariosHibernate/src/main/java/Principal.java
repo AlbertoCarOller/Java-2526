@@ -7,6 +7,7 @@ void main() {
         gestorService.cargarDatosPrueba();
         gestorService.darAltaConcesionario("Concesionario BellaVista", "Calle Vista 33");
         gestorService.darAltaCoche("1234BBC", "Hyundai", "Khonda", 20000, 2);
+        gestorService.instalarExtra("1234BBC", 1);
     } catch (GestorException e) {
         throw new RuntimeException(e);
     }

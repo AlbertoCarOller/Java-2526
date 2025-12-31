@@ -190,8 +190,59 @@ public class GestorService {
         }
     }
 
+    /**
+     * Esta función va a añadir un equipamiento existente a un coche por
+     * su matrícula en caso de que exista el coche y el equipamiento
+     *
+     * @param matriculaCoche la matrícula del coche a añadir el equipamiento
+     * @param idEquipamiento el id del equipamiento a añadir
+     * @return el precio del coche con los extras
+     * @throws GestorException      en caso de que no se encuentre el coche o el equipamiento
+     * @throws PersistenceException en caso de que haya algún error con EntityManager
+     */
     public double instalarExtra(String matriculaCoche, int idEquipamiento) throws GestorException, PersistenceException {
-        // TODO: hacer la función
-        return 0;
+        double precioFinal;
+        try (EntityManager entityManager = entityManagerFactory.createEntityManager()) {
+            // Comenzamos la transacción
+            entityManager.getTransaction().begin();
+            // Hacemos una consulta para obtener un coche a través de la matrícula
+            TypedQuery<Coche> cocheTypedQuery = entityManager
+                    .createQuery("select c from Coche c where c.matricula like :matriculaCoche", Coche.class)
+                    .setParameter("matriculaCoche", matriculaCoche);
+            // Obtenemos el coche
+            Coche coche = cocheTypedQuery.getSingleResult();
+            // En caso de que el coche sea null lanzamos exception
+            if (coche == null) {
+                throw new GestorException("El coche no existe");
+            }
+            // Comprobamos que exista el equipamiento
+            TypedQuery<Equipamiento> equipamientoTypedQuery =
+                    entityManager.createQuery("select e from Equipamiento e where e.id = :idEquipamiento", Equipamiento.class)
+                            .setParameter("idEquipamiento", idEquipamiento);
+            // Obtenemos el equipamiento
+            Equipamiento equipamiento = equipamientoTypedQuery.getSingleResult();
+            // Comprobamos si existe el equipamiento
+            if (equipamiento == null) {
+                throw new GestorException("El equipamiento no existe");
+            }
+            // Se añade el equipamiento al coche
+            coche.addEquipamiento(equipamiento);
+            // Se hace commit, termina la transacción
+            entityManager.getTransaction().commit();
+            // Se le asigna el precio final del coche con los extras a la varible
+            precioFinal = calcularPrecioTotal(coche);
+        }
+        // Devolvemos el precio final del coche
+        return precioFinal;
+    }
+
+    /**
+     * Esta función va a calcular el precio del coche con los extras añadidos
+     *
+     * @param coche el coche del que se calcula el precio nuevo
+     * @return un double que representa el valor total
+     */
+    private double calcularPrecioTotal(Coche coche) {
+        return coche.getPrecioBase() + coche.getEquipamientos().stream().mapToDouble(Equipamiento::getCoste).sum();
     }
 }
