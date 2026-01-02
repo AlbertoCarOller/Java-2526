@@ -5,8 +5,14 @@ import jakarta.persistence.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
+// Hacemos una consulta para obtener un coche a través de la matrícula
+@NamedQuery(
+        name = "Coche.obtenerPorMatricula",
+        query = "select c from Coche c where c.matricula like :matriculaCoche"
+)
 public class Coche {
     // El id, la primary key de la tabla va a see la matrícula
     @Id
@@ -60,7 +66,7 @@ public class Coche {
 
     // Funciones de ayuda
     public void addEquipamiento(Equipamiento equipamiento) throws GestorException {
-        if (this.equipamientos.contains(equipamiento) || equipamiento.getCoches().contains(this)) {
+        if (this.equipamientos.contains(equipamiento)) {
             throw new GestorException("No se puede añadir el equipamiento al coche porque ya está añadido");
         }
         this.equipamientos.add(equipamiento);
@@ -70,6 +76,11 @@ public class Coche {
     public void removeEquipamiento(Equipamiento equipamiento) {
         this.equipamientos.remove(equipamiento);
         equipamiento.getCoches().remove(this);
+    }
+
+    public void addReparacion(Reparacion reparacion) {
+        reparaciones.add(reparacion);
+        reparacion.setCoche(this);
     }
 
     public String getMatricula() {
@@ -130,5 +141,17 @@ public class Coche {
 
     public List<Reparacion> getReparaciones() {
         return reparaciones;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Coche coche = (Coche) o;
+        return Objects.equals(matricula, coche.matricula);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(matricula);
     }
 }

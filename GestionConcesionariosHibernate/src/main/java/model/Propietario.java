@@ -1,9 +1,11 @@
 package model;
 
+import exception.GestorException;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 public class Propietario {
@@ -35,7 +37,10 @@ public class Propietario {
         venta.setPropietario(this);
     }
 
-    public void addCoche(Coche coche) {
+    public void addCoche(Coche coche) throws GestorException {
+        if (this.coches.contains(coche)) {
+            throw new GestorException("El coche ya tiene propietario");
+        }
         this.coches.add(coche);
         coche.setPropietario(this);
     }
@@ -66,5 +71,17 @@ public class Propietario {
 
     public List<Coche> getCoches() {
         return coches;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Propietario that = (Propietario) o;
+        return Objects.equals(dni, that.dni);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(dni);
     }
 }

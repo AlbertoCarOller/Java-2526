@@ -8,6 +8,9 @@ import jakarta.persistence.TypedQuery;
 import model.*;
 import util.EntityManagerController;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -207,7 +210,7 @@ public class GestorService {
             entityManager.getTransaction().begin();
             // Hacemos una consulta para obtener un coche a través de la matrícula
             TypedQuery<Coche> cocheTypedQuery = entityManager
-                    .createQuery("select c from Coche c where c.matricula like :matriculaCoche", Coche.class)
+                    .createNamedQuery("Coche.obtenerPorMatricula", Coche.class)
                     .setParameter("matriculaCoche", matriculaCoche);
             // Obtenemos el coche
             Coche coche = cocheTypedQuery.getSingleResult();
@@ -244,5 +247,63 @@ public class GestorService {
      */
     private double calcularPrecioTotal(Coche coche) {
         return coche.getPrecioBase() + coche.getEquipamientos().stream().mapToDouble(Equipamiento::getCoste).sum();
+    }
+
+    /**
+     * Esta función va a crear una reparación la cual se asociará a
+     * un coche y un mecánico
+     *
+     * @param matriculaCoche   la matrícula del coche a realizar la reparación
+     * @param idMecanico       el id del mecánico que va a realizar la reparación
+     * @param fecha            la fecha en la que se va a realizar la reparación
+     * @param costeInversion   el coste de la reparación
+     * @param breveDescripcion la descripción de la reparación
+     * @throws GestorException        en caso de que haya algún dato incorrecto
+     * @throws PersistenceException   en caso de un error con EntityManager
+     * @throws DateTimeParseException en caso de que al intentar parsear la fecha (String) a LocalDate
+     */
+    public void registrarReparacion(String matriculaCoche, int idMecanico, String fecha, double costeInversion,
+                                    String breveDescripcion) throws GestorException, PersistenceException, DateTimeParseException {
+        try (EntityManager entityManager = entityManagerFactory.createEntityManager()) {
+            // Comenzamos la transacción
+            entityManager.getTransaction().begin();
+            // Comprobamos el coste de inversión y la breve descripción
+            if (costeInversion <= 0 || breveDescripcion.isEmpty()) {
+                throw new GestorException("El coste de inversión o la descripción son inválidos");
+            }
+            /* Creamos una variable donde almacenar la fecha como LocalDate parseándola,
+             * utilizamos el DateTimeFormatter.ofPattern() para que el formato esté en fecha de España */
+            LocalDate fechaReal = LocalDate.parse(fecha, DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+            // Comprobamos que la fecha del registro no sea posterior a la actual
+            if (fechaReal.isAfter(LocalDate.now())) {
+                throw new GestorException("La fecha del registro es posterior a la actual");
+            }
+            // Hacemos una consulta nombrada tipada para obtener el coche
+            TypedQuery<Coche> cocheTypedQuery = entityManager.createNamedQuery("Coche.obtenerPorMatricula", Coche.class)
+                    .setParameter("matriculaCoche", matriculaCoche);
+            // Obtenemos el coche
+            Coche coche = cocheTypedQuery.getSingleResult();
+            // En caso de que no exista el coche lanzamos excepción
+            if (coche == null) {
+                throw new GestorException("El coche no existe");
+            }
+            // Obtenemos el mecánico mediante el id
+            TypedQuery<Mecanico> mecanicoTypedQuery = entityManager
+                    .createQuery("select m from Mecanico m where m.id = :idMecanico", Mecanico.class)
+                    .setParameter("idMecanico", idMecanico);
+            Mecanico mecanico = mecanicoTypedQuery.getSingleResult();
+            // En caso de que no exista el mecánico lanzamos excepción
+            if (mecanico == null) {
+                throw new GestorException("El mecánico no existe");
+            }
+            // Creamos la reparación una vez que tenemos todos los datos
+            Reparacion reparacion = new Reparacion(fechaReal, costeInversion, breveDescripcion);
+            // Añadimos la reparación al mecánico
+            mecanico.addReparacion(reparacion);
+            // Añadimos la reparación al coche
+            coche.addReparacion(reparacion);
+            // Terminamos la transacción
+            entityManager.getTransaction().commit();
+        }
     }
 }

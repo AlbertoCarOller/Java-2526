@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 public class Equipamiento {
@@ -30,7 +31,7 @@ public class Equipamiento {
 
     // Funciones de ayuda
     public void addCoche(Coche coche) throws GestorException {
-        if (this.coches.contains(coche) || coche.getEquipamientos().contains(this)) {
+        if (this.coches.contains(coche)) {
             throw new GestorException("No se puede añadir el equipamiento al coche porque ya está añadido");
         }
         this.coches.add(coche);
@@ -59,5 +60,17 @@ public class Equipamiento {
 
     public List<Coche> getCoches() {
         return coches;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Equipamiento that = (Equipamiento) o;
+        return Objects.equals(nombre, that.nombre);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(nombre);
     }
 }

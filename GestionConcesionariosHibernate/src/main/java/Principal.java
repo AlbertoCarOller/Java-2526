@@ -1,4 +1,5 @@
 import exception.GestorException;
+import jakarta.persistence.PersistenceException;
 import service.GestorService;
 
 void main() {
@@ -7,8 +8,10 @@ void main() {
         gestorService.cargarDatosPrueba();
         gestorService.darAltaConcesionario("Concesionario BellaVista", "Calle Vista 33");
         gestorService.darAltaCoche("1234BBC", "Hyundai", "Khonda", 20000, 2);
-        gestorService.instalarExtra("1234BBC", 1);
-    } catch (GestorException e) {
-        throw new RuntimeException(e);
+        System.out.println(gestorService.instalarExtra("1234BBC", 1) + " EUR");
+        gestorService.registrarReparacion("7865ZYX", 1, "02/01/2026", 300,
+                "Cambio de rueda");
+    } catch (GestorException | PersistenceException | DateTimeParseException e) {
+        System.out.println(e.getMessage());
     }
 }

@@ -1,9 +1,11 @@
 package model;
 
+import exception.GestorException;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 // Creamos la tabla concesionario
 @Entity
@@ -61,7 +63,10 @@ public class Concesionario {
     }
 
     // Añadimos los helper de coches
-    public void addCoche(Coche coche) {
+    public void addCoche(Coche coche) throws GestorException {
+        if (this.coches.contains(coche)) {
+            throw new GestorException("El coche ya está en el concesionario");
+        }
         this.coches.add(coche);
         coche.setConcesionario(this);
     }
@@ -90,5 +95,15 @@ public class Concesionario {
         return ventas;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Concesionario that = (Concesionario) o;
+        return Objects.equals(nombre, that.nombre) && Objects.equals(direccion, that.direccion);
+    }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(nombre, direccion);
+    }
 }
