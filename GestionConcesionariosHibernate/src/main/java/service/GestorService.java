@@ -364,10 +364,10 @@ public class GestorService {
             propietario.addCoche(coche);
             // Creamos la venta
             Venta venta = new Venta(LocalDate.now(), precioPactado);
-            // Le añadimos al propietario la venta
-            propietario.addVenta(venta);
             // Añadimos el coche a la venta
             venta.setCoche(coche);
+            // Le añadimos al propietario la venta
+            propietario.addVenta(venta);
             // Le añadimos al concesionario la venta
             concesionario.addVenta(venta);
             // Terminamos la transacción
