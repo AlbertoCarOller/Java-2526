@@ -11,6 +11,7 @@ import util.EntityManagerController;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -38,6 +39,7 @@ public class GestorService {
      *                         no debería de haber, ya que se borran los datos antes
      */
     public void cargarDatosPrueba() throws GestorException, PersistenceException {
+        // TODO: pensar bien si hacer o no las ventas en los datos de prueba
         // Envolvemos el entityManager creado en un try, ya que es AutoCloseable
         try (EntityManager entityManager = entityManagerFactory.createEntityManager()) {
             // Comenzamos una transacción (SIEMPRE NECESARIA PARA MANIPULAR LOS DATOS)
@@ -133,9 +135,9 @@ public class GestorService {
              * getResultList -> devuelve la lista de objetos que devuelve la consulta
              * createNamedQuery -> es una consulta nombrada, es decir ya existente que tiene un nombre, se le pasan
              * los parámetros necesarios, en este caso el nombre y la dirección */
-            if (!entityManager.createNamedQuery("Concesionario.existeConcesionario").setParameter("nombre", nombre)
-                    .setParameter("direccion", direccion).getResultList().isEmpty()) {
-                throw new GestorException("La concesionario ya existe");
+            if (!validarExistencia(entityManager.createNamedQuery("Concesionario.existeConcesionario").setParameter("nombre", nombre)
+                    .setParameter("direccion", direccion).getResultList())) {
+                throw new GestorException("El concesionario ya existe");
             }
             // En este punto no hay errores, por lo que comenzamos la transacción para la creación del concesionario
             entityManager.getTransaction().begin();
@@ -179,7 +181,7 @@ public class GestorService {
             // Guardamos la lista de concesionario (que debe de haber 0 o 1)
             List<Concesionario> concesionarios = typedQuery.getResultList();
             // Comprobamos si existe el concesionario con el id pasado
-            if (concesionarios.isEmpty()) {
+            if (validarExistencia(concesionarios)) {
                 throw new GestorException("El concesionario con id " + idConcesionario + " no existe");
             }
             // Obtenemos el concesionario
@@ -208,26 +210,23 @@ public class GestorService {
         try (EntityManager entityManager = entityManagerFactory.createEntityManager()) {
             // Comenzamos la transacción
             entityManager.getTransaction().begin();
-            // Hacemos una consulta para obtener un coche a través de la matrícula
-            TypedQuery<Coche> cocheTypedQuery = entityManager
-                    .createNamedQuery("Coche.obtenerPorMatricula", Coche.class)
-                    .setParameter("matriculaCoche", matriculaCoche);
-            // Obtenemos el coche
-            Coche coche = cocheTypedQuery.getSingleResult();
-            // En caso de que el coche sea null lanzamos exception
-            if (coche == null) {
+            List<Coche> coches = obtenerListaCoches(matriculaCoche, entityManager);
+            // En caso de que el coche no esté lanzamos excepción
+            if (validarExistencia(coches)) {
                 throw new GestorException("El coche no existe");
             }
+            Coche coche = coches.getFirst();
             // Comprobamos que exista el equipamiento
             TypedQuery<Equipamiento> equipamientoTypedQuery =
                     entityManager.createQuery("select e from Equipamiento e where e.id = :idEquipamiento", Equipamiento.class)
                             .setParameter("idEquipamiento", idEquipamiento);
             // Obtenemos el equipamiento
-            Equipamiento equipamiento = equipamientoTypedQuery.getSingleResult();
+            List<Equipamiento> equipamientos = equipamientoTypedQuery.getResultList();
             // Comprobamos si existe el equipamiento
-            if (equipamiento == null) {
+            if (validarExistencia(equipamientos)) {
                 throw new GestorException("El equipamiento no existe");
             }
+            Equipamiento equipamiento = equipamientos.getFirst();
             // Se añade el equipamiento al coche
             coche.addEquipamiento(equipamiento);
             // Se hace commit, termina la transacción
@@ -278,24 +277,22 @@ public class GestorService {
             if (fechaReal.isAfter(LocalDate.now())) {
                 throw new GestorException("La fecha del registro es posterior a la actual");
             }
-            // Hacemos una consulta nombrada tipada para obtener el coche
-            TypedQuery<Coche> cocheTypedQuery = entityManager.createNamedQuery("Coche.obtenerPorMatricula", Coche.class)
-                    .setParameter("matriculaCoche", matriculaCoche);
-            // Obtenemos el coche
-            Coche coche = cocheTypedQuery.getSingleResult();
+            List<Coche> coches = obtenerListaCoches(matriculaCoche, entityManager);
             // En caso de que no exista el coche lanzamos excepción
-            if (coche == null) {
+            if (validarExistencia(coches)) {
                 throw new GestorException("El coche no existe");
             }
+            Coche coche = coches.getFirst();
             // Obtenemos el mecánico mediante el id
             TypedQuery<Mecanico> mecanicoTypedQuery = entityManager
                     .createQuery("select m from Mecanico m where m.id = :idMecanico", Mecanico.class)
                     .setParameter("idMecanico", idMecanico);
-            Mecanico mecanico = mecanicoTypedQuery.getSingleResult();
+            List<Mecanico> mecanicos = mecanicoTypedQuery.getResultList();
             // En caso de que no exista el mecánico lanzamos excepción
-            if (mecanico == null) {
+            if (validarExistencia(mecanicos)) {
                 throw new GestorException("El mecánico no existe");
             }
+            Mecanico mecanico = mecanicos.getFirst();
             // Creamos la reparación una vez que tenemos todos los datos
             Reparacion reparacion = new Reparacion(fechaReal, costeInversion, breveDescripcion);
             // Añadimos la reparación al mecánico
@@ -305,5 +302,108 @@ public class GestorService {
             // Terminamos la transacción
             entityManager.getTransaction().commit();
         }
+    }
+
+    /**
+     * Esta función va a vender el coche a un propietario en caso de que el coche no esté
+     * vendido y exista, creando así una venta
+     *
+     * @param dni             el dni del propietario
+     * @param nombre          el nombre del propietario
+     * @param matriculaCoche  la matrícula del coche a vender
+     * @param idConcesionario el id del concesionario en el que se va a realizar la venta
+     * @param precioPactado   el precio pactado de la venta
+     * @throws GestorException      en caso de que el coche, el concesionario o algún campo sea incorrecto
+     * @throws PersistenceException en caso de un error con EntityManager
+     */
+    public void venderCoche(String dni, String nombre, String matriculaCoche, int idConcesionario, double precioPactado)
+            throws GestorException, PersistenceException {
+        // Creamos un Pattern para validar el formato del dni pasado
+        Pattern pattern = Pattern.compile("^[0-9]{8}([A-Z]|[a-z])$");
+        Matcher matcher = pattern.matcher(dni);
+        // Comprobamos si el formato del dni y el nombre son válidos
+        if (!matcher.matches() || nombre.isEmpty()) {
+            throw new GestorException("El nombre y/o la matrícula no son válidos");
+        }
+        try (EntityManager entityManager = entityManagerFactory.createEntityManager()) {
+            // Comenzamos la transacción
+            entityManager.getTransaction().begin();
+            // Vamos a obtener el concesionario por su id en caso de que exista
+            TypedQuery<Concesionario> concesionarioTypedQuery =
+                    entityManager.createNamedQuery("Concesionario.existentePorID", Concesionario.class)
+                            .setParameter("id", idConcesionario);
+            List<Concesionario> concesionarios = concesionarioTypedQuery.getResultList();
+            // En caso de que no existe el concesionario lanzamos excepción
+            if (validarExistencia(concesionarios)) {
+                throw new GestorException("El concesionario no existe");
+            }
+            Concesionario concesionario = concesionarios.getFirst();
+            List<Coche> coches = obtenerListaCoches(matriculaCoche, entityManager);
+            if (validarExistencia(coches)) {
+                throw new GestorException("El coche no existe");
+            }
+            Coche coche = coches.getFirst();
+            // Vamos a comprobar si el coche ya ha sido vendido
+            /*if (coche.getPropietario() != null) {
+                throw new GestorException("El coche ya ha sido vendido antes");
+            }*/
+            // Vamos a intentar obtener el propietario en caso de que exista ya en la base de datos porque ya haya comprado antes
+            TypedQuery<Propietario> propietarioTypedQuery = entityManager
+                    .createQuery("select p from Propietario p where p.dni like :dni", Propietario.class)
+                    .setParameter("dni", dni);
+            List<Propietario> propietarios = propietarioTypedQuery.getResultList();
+            Propietario propietario;
+            // En caso de que no haya propietario, se crea
+            if (validarExistencia(propietarios)) {
+                propietario = new Propietario(dni, nombre);
+                // Persistimos el propietario
+                entityManager.persist(propietario);
+            }
+            propietario = propietarios.getFirst();
+            // Le añadimos el coche al propietario
+            propietario.addCoche(coche);
+            // Creamos la venta
+            Venta venta = new Venta(LocalDate.now(), precioPactado);
+            // Le añadimos al propietario la venta
+            propietario.addVenta(venta);
+            // Añadimos el coche a la venta
+            venta.setCoche(coche);
+            // Le añadimos al concesionario la venta
+            concesionario.addVenta(venta);
+            // Terminamos la transacción
+            entityManager.getTransaction().commit();
+        }
+    }
+
+    /**
+     * Esta función va a comprobar que exista o no
+     * el objeto de una comprobación obtenida por
+     * una TypedQuery, '?' quiere decir que da igual
+     * el contenido de la lista, el tipo que sea, ya
+     * que en este caso solo me importa si está vacía o no
+     *
+     * @param lista la lista a comprobar
+     * @return si está vacía o no
+     */
+    private boolean validarExistencia(List<?> lista) {
+        return lista.isEmpty();
+    }
+
+    /**
+     * Esta función va a devolver una lista el coche
+     * devuelto por la TypedQuery, este busca un coche
+     * por su matrícula
+     *
+     * @param matriculaCoche la matrícula del coche a obtener
+     * @param entityManager  el EntityManager de la transacción
+     * @return la lista de coches (solo debería de haber 1 o 0)
+     * @throws PersistenceException en caso de que haya algún error con la TypedQuery
+     */
+    private List<Coche> obtenerListaCoches(String matriculaCoche, EntityManager entityManager) throws PersistenceException {
+        // Vamos a obtener el coche por su matrícula en caso de que exista
+        TypedQuery<Coche> cocheTypedQuery = entityManager
+                .createNamedQuery("Coche.obtenerPorMatricula", Coche.class)
+                .setParameter("matriculaCoche", matriculaCoche);
+        return cocheTypedQuery.getResultList();
     }
 }

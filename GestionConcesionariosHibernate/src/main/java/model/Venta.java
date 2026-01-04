@@ -24,7 +24,8 @@ public class Venta {
 
     // Relación 1:1 con Coche
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "coche_matricula")
+    // Con unique = true nos aseguramos que en la tabla ventas el coche sea único
+    @JoinColumn(name = "coche_matricula", unique = true)
     private Coche coche;
 
     public Venta() {

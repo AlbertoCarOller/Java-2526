@@ -26,6 +26,7 @@ public class Coche {
     private Concesionario concesionario;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    // JoinColumn -> Es el que recibe el parámetro, no manda, manda el contrario, que debe tener el mappedBy
     @JoinColumn(name = "propietario_id")
     private Propietario propietario;
 
