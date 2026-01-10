@@ -39,7 +39,7 @@ public class Propietario {
 
     public void addCoche(Coche coche) throws GestorException {
         if (this.coches.contains(coche)) {
-            throw new GestorException("El coche ya tiene propietario");
+            throw new GestorException("Ya tienes el coche");
         }
         this.coches.add(coche);
         coche.setPropietario(this);
@@ -83,5 +83,16 @@ public class Propietario {
     @Override
     public int hashCode() {
         return Objects.hashCode(dni);
+    }
+
+    @Override
+    public String toString() {
+        return "Propietario{" +
+                "id=" + id +
+                ", dni='" + dni + '\'' +
+                ", nombre='" + nombre + '\'' +
+                ", ventas=" + ventas +
+                ", coches=" + coches.stream().map(Coche::getMatricula).toList() +
+                '}';
     }
 }

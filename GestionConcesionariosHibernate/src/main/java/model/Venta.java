@@ -81,4 +81,16 @@ public class Venta {
     public void setCoche(Coche coche) {
         this.coche = coche;
     }
+
+    @Override
+    public String toString() {
+        return "Venta{" +
+                "id=" + id +
+                ", fecha=" + fecha +
+                ", precioFinal=" + precioFinal +
+                ", concesionario=" + concesionario.getId() +
+                ", propietario=" + propietario.getDni() +
+                ", coche=" + coche.getMatricula() +
+                '}';
+    }
 }

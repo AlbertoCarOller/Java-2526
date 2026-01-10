@@ -54,4 +54,13 @@ public class Mecanico {
     public List<Reparacion> getReparaciones() {
         return reparaciones;
     }
+
+    @Override
+    public String toString() {
+        return "Mecanico{" +
+                "id=" + id +
+                ", nombre='" + nombre + '\'' +
+                ", especialidad='" + especialidad + '\'' +
+                '}';
+    }
 }

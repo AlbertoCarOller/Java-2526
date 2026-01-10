@@ -95,6 +95,10 @@ public class Concesionario {
         return ventas;
     }
 
+    public List<Coche> getCoches() {
+        return coches;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
@@ -105,5 +109,16 @@ public class Concesionario {
     @Override
     public int hashCode() {
         return Objects.hash(nombre, direccion);
+    }
+
+    @Override
+    public String toString() {
+        return "Concesionario{" +
+                "id=" + id +
+                ", nombre='" + nombre + '\'' +
+                ", direccion='" + direccion + '\'' +
+                ", ventas=" + ventas +
+                ", coches=" + coches.stream().map(Coche::getMatricula).toList() +
+                '}';
     }
 }

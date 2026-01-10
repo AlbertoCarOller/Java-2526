@@ -42,7 +42,7 @@
             <!-- 3. ESTRATEGIA DE CREACIÓN DE TABLAS (DDL) -->
             <!-- 'update': Crea la tabla si no existe, o la actualiza si cambias la clase Java.
                  Otras opciones: 'create-drop' (borra al cerrar), 'validate' (solo chequea). -->
-            <property name="hibernate.hbm2ddl.auto" value="create"/>
+            <property name="hibernate.hbm2ddl.auto" value="update"/>
 
             <!-- Dialecto: Ayuda a Hibernate a optimizar SQL para MySQL 8 -->
             <property name="hibernate.dialect" value="org.hibernate.dialect.MySQLDialect"/>

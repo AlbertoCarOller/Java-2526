@@ -73,4 +73,14 @@ public class Equipamiento {
     public int hashCode() {
         return Objects.hashCode(nombre);
     }
+
+    @Override
+    public String toString() {
+        return "Equipamiento{" +
+                "id=" + id +
+                ", nombre='" + nombre + '\'' +
+                ", coste=" + coste +
+                ", coches=" + coches.stream().map(Coche::getMatricula).toList() +
+                '}';
+    }
 }

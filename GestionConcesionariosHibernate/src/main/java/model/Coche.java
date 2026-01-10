@@ -155,4 +155,27 @@ public class Coche {
     public int hashCode() {
         return Objects.hashCode(matricula);
     }
+
+    @Override
+    public String toString() {
+        String ventaS = "";
+        String propietarioS = "";
+        if (venta != null) {
+            ventaS = this.venta.getId().toString();
+        }
+        if (propietario != null) {
+            propietarioS = this.propietario.getId().toString();
+        }
+        return "Coche{" +
+                "matricula='" + matricula + '\'' +
+                ", marca='" + marca + '\'' +
+                ", modelo='" + modelo + '\'' +
+                ", precioBase=" + precioBase +
+                ", concesionario=" + concesionario.getId() +
+                ", propietario=" + propietarioS +
+                ", venta=" + ventaS +
+                ", equipamientos=" + equipamientos.stream().map(Equipamiento::getNombre).toList() +
+                ", reparaciones=" + reparaciones.stream().map(Reparacion::getDescripcion).toList() +
+                '}';
+    }
 }
