@@ -64,7 +64,7 @@ public class Principal {
     /**
      * Esta función va a recibir la opción
      * por parámetros y va a llamar a la función
-     * correspodiente según este
+     * correspondiente según este
      *
      * @param opcion la opción pasada
      */
@@ -136,7 +136,7 @@ public class Principal {
      * Esta función va a solicitar los datos de un coche
      * para después darlo de alta con la función darAltaCoche()
      *
-     * @throws GestorException en caso de cualquier error
+     * @throws GestorException       en caso de cualquier error
      * @throws NumberFormatException en caso de error de casteo
      */
     private static void altaCoche() throws GestorException, NumberFormatException {
@@ -164,7 +164,7 @@ public class Principal {
      * Esta función va a mostrar los coches y extras que hay
      * para instalar un extra existente a un coche
      *
-     * @throws GestorException en caso de cualquier error
+     * @throws GestorException       en caso de cualquier error
      * @throws NumberFormatException en caso de error de casteo
      */
     private static void instalarExtra() throws GestorException, NumberFormatException {
@@ -189,7 +189,7 @@ public class Principal {
      *
      * @throws GestorException        en caso de casi cualquier error
      * @throws DateTimeParseException en caso de que al parsear la fecha de error
-     * @throws NumberFormatException en caso de error de casteo
+     * @throws NumberFormatException  en caso de error de casteo
      */
     private static void registrarReparacion() throws GestorException, DateTimeParseException, NumberFormatException {
         System.out.println("\n--- Nueva Reparación ---");
@@ -218,7 +218,7 @@ public class Principal {
      * Esta función va a solicitar el id del concesionario a elegir,
      * la matrícula del coche a vender, generando así una venta
      *
-     * @throws GestorException en caso de cualquier error
+     * @throws GestorException       en caso de cualquier error
      * @throws NumberFormatException en caso de error de casteo
      */
     private static void venderCoche() throws GestorException, NumberFormatException {
@@ -245,7 +245,7 @@ public class Principal {
      * Esta función va a solicitar un concesionario y generar
      * un informe sobre el stock de coches que tiene
      *
-     * @throws GestorException en caso de cualquier error
+     * @throws GestorException       en caso de cualquier error
      * @throws NumberFormatException en caso de error de casteo
      */
     private static void listarStockConcesionario() throws GestorException, NumberFormatException {
@@ -259,7 +259,7 @@ public class Principal {
      * Esta función va a solicitar el id de un mecánico
      * y va a generar un txt con su historial de reparaciones
      *
-     * @throws GestorException en caso de cualquier error
+     * @throws GestorException       en caso de cualquier error
      * @throws NumberFormatException en caso de error de casteo
      */
     private static void historialMecanico() throws GestorException, NumberFormatException {
@@ -273,7 +273,7 @@ public class Principal {
      * Esta función va a mostrar en un txt todas las ventas de un concesionario
      * especificado, solicitando el id del concesionario
      *
-     * @throws GestorException en caso de cualquier error
+     * @throws GestorException       en caso de cualquier error
      * @throws NumberFormatException en caso de error de casteo
      */
     private static void ventasPorConcesionario() throws GestorException, NumberFormatException {
@@ -301,61 +301,52 @@ public class Principal {
     /**
      * Esta función va a imprimis la lista de todos los
      * concesionario que hay en la base de datos
+     * @throws GestorException en caso de cualquier error
      */
-    private static void listarConcesionariosPantalla() {
-        try {
-            System.out.println("Concesionarios Disponibles:");
-            List<String> lista = gestor.mostrarConcesionarios();
-            lista.forEach(System.out::println);
-            System.out.println("---------------------------------");
-        } catch (GestorException e) {
-            System.out.println("No hay concesionarios para mostrar.");
-        }
+    private static void listarConcesionariosPantalla() throws GestorException {
+        System.out.println("Concesionarios Disponibles:");
+        List<String> lista = gestor.mostrarConcesionarios();
+        lista.forEach(System.out::println);
+        System.out.println("---------------------------------");
     }
 
     /**
      * Esta función va a imprimir la lista de todos los mecánicos
      * disponibles en la base de datos
+     *
+     * @throws GestorException en caso de cualquier error
      */
-    private static void listarMecanicosPantalla() {
-        try {
-            System.out.println("Mecánicos Disponibles:");
-            List<Mecanico> lista = gestor.mostrarMecanicos();
-            lista.forEach(System.out::println);
-            System.out.println("---------------------------------");
-        } catch (GestorException e) {
-            System.out.println("No hay mecánicos para mostrar.");
-        }
+    private static void listarMecanicosPantalla() throws GestorException {
+        System.out.println("Mecánicos Disponibles:");
+        List<Mecanico> lista = gestor.mostrarMecanicos();
+        lista.forEach(System.out::println);
+        System.out.println("---------------------------------");
     }
 
     /**
      * Esta función va a imprimir la lista de todos los
      * equipamientos disponibles en la base de datos
+     *
+     * @throws GestorException en caso de cualquier error
      */
-    private static void listarEquipamientosPantalla() {
-        try {
-            System.out.println("Equipamientos Disponibles:");
-            List<String> lista = gestor.mostrarEquipamientos();
-            lista.forEach(System.out::println);
-            System.out.println("---------------------------------");
-        } catch (GestorException e) {
-            System.out.println("No hay equipamientos para mostrar.");
-        }
+    private static void listarEquipamientosPantalla() throws GestorException {
+        System.out.println("Equipamientos Disponibles:");
+        List<String> lista = gestor.mostrarEquipamientos();
+        lista.forEach(System.out::println);
+        System.out.println("---------------------------------");
     }
 
     /**
      * Esta función va a mostrar los coches de
      * un concesionario concreto o de toda la base de datos
+     *
+     * @throws GestorException en caso de cualquier error
      */
-    private static void listarCochesPantalla(long idConcesionario) {
-        try {
-            System.out.println("Todos los Coches Disponibles:");
-            List<String> lista = gestor.mostrarCoches(idConcesionario);
-            lista.forEach(System.out::println);
-            System.out.println("---------------------------------");
-        } catch (GestorException e) {
-            System.out.println("No hay coches para mostrar.");
-        }
+    private static void listarCochesPantalla(long idConcesionario) throws GestorException {
+        System.out.println("Todos los Coches Disponibles:");
+        List<String> lista = gestor.mostrarCoches(idConcesionario);
+        lista.forEach(System.out::println);
+        System.out.println("---------------------------------");
     }
 
     // --- UTILIDADES DE LECTURA ---

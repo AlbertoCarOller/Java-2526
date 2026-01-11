@@ -128,9 +128,9 @@ public class GestorService {
         // Eliminamos los datos de todas las tablas, sin importar el orden
         // Modificación, eliminamos teniendo en cuenta el orden para no tener que utilizar las NativeQuery
         entityManager.createQuery("delete from Venta ").executeUpdate();
+        entityManager.createQuery("delete from Reparacion ").executeUpdate();
         entityManager.createQuery("delete from Equipamiento ").executeUpdate();
-        entityManager.createQuery("delete from Coche").executeUpdate();
-        entityManager.createQuery("delete from Reparacion").executeUpdate();
+        entityManager.createQuery("delete from Coche ").executeUpdate();
         entityManager.createQuery("delete from Propietario ").executeUpdate();
         entityManager.createQuery("delete from Concesionario ").executeUpdate();
         entityManager.createQuery("delete from Mecanico").executeUpdate();
@@ -200,11 +200,8 @@ public class GestorService {
      */
     public void darAltaCoche(String matricula, String marca, String modelo, double precioBase, long idConcesionario)
             throws GestorException {
-        // Creamos un regex para verificar que la matrícula sea válida
-        Pattern pattern = Pattern.compile("^[0-9]{4}[A-Z]{3}$");
-        Matcher matcher = pattern.matcher(matricula);
         // Comprobamos si son válidos los diferentes campos del coche
-        if (matricula.isEmpty() || marca.isEmpty() || modelo.isEmpty() || precioBase <= 0 || !matcher.matches()) {
+        if (marca.isEmpty() || modelo.isEmpty() || precioBase <= 0 || !matricula.matches("^[0-9]{4}[A-Z]{3}$")) {
             throw new GestorException("Algún campo del coche es inválido");
         }
         EntityManager entityManager = null;
@@ -220,6 +217,10 @@ public class GestorService {
             // Comprobamos si existe el concesionario con el id pasado
             if (validarExistencia(concesionarios)) {
                 throw new GestorException("El concesionario con id " + idConcesionario + " no existe");
+            }
+            // Validamos si existe un coche con esa matrícula en general en la bd
+            if (!validarExistencia(obtenerListaCoches(matricula, entityManager))) {
+                throw new GestorException("El coche ya existe");
             }
             // Obtenemos el concesionario
             Concesionario concesionario = concesionarios.getFirst();
@@ -302,6 +303,7 @@ public class GestorService {
      * @return un double que representa el valor total
      */
     private double calcularPrecioTotal(Coche coche) {
+        // TODO: preguntar si quiere el PrecioCompra + extras en caso de que tenga propietario o no
         return coche.getPrecioBase() + coche.getEquipamientos().stream().mapToDouble(Equipamiento::getCoste).sum();
     }
 
@@ -387,11 +389,8 @@ public class GestorService {
      */
     public void venderCoche(String dni, String nombre, String matriculaCoche, long idConcesionario, double precioPactado)
             throws GestorException {
-        // Creamos un Pattern para validar el formato del dni pasado
-        Pattern pattern = Pattern.compile("^[0-9]{8}([A-Z]|[a-z])$");
-        Matcher matcher = pattern.matcher(dni);
         // Comprobamos si el formato del dni y el nombre son válidos
-        if (!matcher.matches() || nombre.isEmpty()) {
+        if (!dni.matches("^[0-9]{8}([A-Z]|[a-z])$") || nombre.isEmpty()) {
             throw new GestorException("El nombre y/o la matrícula no son válidos");
         }
         EntityManager entityManager = null;
@@ -687,6 +686,10 @@ public class GestorService {
             }
             // Obtenemos el coche en caso de que exista
             Coche coche = coches.getFirst();
+            // En caso de que el coche no tenga propietario lanzamos excepción
+            if (coche.getPropietario() == null) {
+                throw new GestorException("El coche debe tener un propietario");
+            }
             bw.write("Coste total actual del coche " + coche.getMatricula() + ": " + calcularCosteActualCoche(coche) + "€");
             // Cerramos la transacción
             entityManager.getTransaction().commit();
