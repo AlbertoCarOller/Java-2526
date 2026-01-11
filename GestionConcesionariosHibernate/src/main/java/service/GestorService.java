@@ -414,9 +414,9 @@ public class GestorService {
             }
             Coche coche = coches.getFirst();
             // Vamos a comprobar si el coche ya ha sido vendido
-            /*if (coche.getPropietario() != null) {
+            if (coche.getPropietario() != null) {
                 throw new GestorException("El coche ya ha sido vendido antes");
-            }*/
+            }
             // Vamos a intentar obtener el propietario en caso de que exista ya en la base de datos porque ya haya comprado antes
             TypedQuery<Propietario> propietarioTypedQuery = entityManager
                     .createQuery("select p from Propietario p where p.dni like :dni", Propietario.class)

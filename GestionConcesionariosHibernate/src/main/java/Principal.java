@@ -36,7 +36,7 @@ public class Principal {
             procesarOpcion(opcion);
         } while (opcion != 0);
 
-        System.out.println("👋 Fin del programa. ¡Hasta luego!");
+        System.out.println("Fin del programa. ¡Hasta luego!");
     }
 
     /**
