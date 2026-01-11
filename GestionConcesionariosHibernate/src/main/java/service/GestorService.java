@@ -776,7 +776,7 @@ public class GestorService {
      * Esta función va a devolver una lista de coches de un concesionario
      * concreto o todos los coches de la bd
      *
-     * @param idConcesionario el id del concesionario a buscar (-1 si no queremos por concesionario)
+     * @param idConcesionario el id del concesionario a buscar (menor o igual a 0 si no queremos por concesionario)
      * @return la lista de matrículas de los coches
      * @throws GestorException en caso de cualquier error
      */
@@ -795,10 +795,14 @@ public class GestorService {
                 throw new GestorException("No hay coches registrados");
             }
             cochesMatriculas = coches.stream().map(Coche::getMatricula).toList();
-            // En caso de que el id sea distinto de -1 buscamos por id del concesionario
-            if (idConcesionario != -1) {
+            // En caso de que el id sea mayor a 0 buscamos por id del concesionario
+            if (idConcesionario > 0) {
                 cochesMatriculas = coches.stream().filter(c -> c.getConcesionario().getId() == idConcesionario)
                         .map(Coche::getMatricula).toList();
+            }
+            // En caso de que no haya concesionarios con el id específico después de filtrar
+            if (validarExistencia(cochesMatriculas)) {
+                throw new GestorException("No existen coches que pertenezcan al concesionario con id " + idConcesionario);
             }
             // Terminamos la transacción
             entityManager.getTransaction().commit();
