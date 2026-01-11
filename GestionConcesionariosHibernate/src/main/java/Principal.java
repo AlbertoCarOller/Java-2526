@@ -301,6 +301,7 @@ public class Principal {
     /**
      * Esta función va a imprimis la lista de todos los
      * concesionario que hay en la base de datos
+     *
      * @throws GestorException en caso de cualquier error
      */
     private static void listarConcesionariosPantalla() throws GestorException {
