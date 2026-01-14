@@ -13,14 +13,14 @@ import java.util.Objects;
 // Importante en JPQL al trabajar con objetos hay que ponerles alias es como crear el nombre de la variable
 @NamedQuery(
         name = "Concesionario.existeConcesionario",
-        query = "select c from Concesionario c where c.nombre like :nombre and" +
-                " c.direccion like :direccion"
+        query = "select c from Concesionario c where c.nombre = :nombre and" +
+                " c.direccion = :direccion"
 )
 // Creamos una consulta en la que seleccionamos un concesionario por su id
-@NamedQuery(
+/*@NamedQuery(
         name = "Concesionario.existentePorID",
         query = "select c from Concesionario c where c.id = :id"
-)
+)*/
 public class Concesionario {
     // Esta tabla va a tener un id autogenerado (auto-incremental)
     @Id
@@ -36,8 +36,9 @@ public class Concesionario {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "concesionario")
     private List<Venta> ventas;
 
-    // Un concesionario tiene muchos coches
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "concesionario")
+    /* Un concesionario tiene muchos coches, no ponemos el cascade.ALL ya que al hacer la venta
+     tenemos que quitar la relación y no queremos que se elimine el coche */
+    @OneToMany(mappedBy = "concesionario")
     private List<Coche> coches;
 
     // Creamos el constructor vacío
@@ -69,6 +70,17 @@ public class Concesionario {
         }
         this.coches.add(coche);
         coche.setConcesionario(this);
+    }
+
+    /**
+     * Esta función va a eliminar el coche
+     * @param coche el coche a eliminar
+     */
+    public void removeCoche(Coche coche) {
+        // Se elimina de la lista
+        this.coches.remove(coche);
+        // Se elimina el concesionario del coche
+        coche.setConcesionario(null);
     }
 
     public Long getId() {

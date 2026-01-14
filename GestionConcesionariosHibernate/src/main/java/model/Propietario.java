@@ -18,7 +18,7 @@ public class Propietario {
     @OneToMany(mappedBy = "propietario", cascade = CascadeType.ALL)
     private List<Venta> ventas;
 
-    @OneToMany(mappedBy = "propietario", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "propietario")
     private List<Coche> coches;
 
     public Propietario() {

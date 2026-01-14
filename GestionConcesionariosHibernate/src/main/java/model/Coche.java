@@ -11,7 +11,7 @@ import java.util.Objects;
 // Hacemos una consulta para obtener un coche a través de la matrícula
 @NamedQuery(
         name = "Coche.obtenerPorMatricula",
-        query = "select c from Coche c where c.matricula like :matriculaCoche"
+        query = "select c from Coche c where c.matricula = :matriculaCoche"
 )
 public class Coche {
     // El id, la primary key de la tabla va a see la matrícula
@@ -25,7 +25,7 @@ public class Coche {
     @JoinColumn(name = "concesionario_id")
     private Concesionario concesionario;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.LAZY)
     // JoinColumn -> Es el que recibe el parámetro, no manda, manda el contrario, que debe tener el mappedBy
     @JoinColumn(name = "propietario_id")
     private Propietario propietario;
@@ -41,14 +41,14 @@ public class Coche {
      * mismo en la práctica cuál elegir, yo en mi caso voy a elegir esta (coche) */
     // En este caso creamos la tabla intermedia 'coche_equipamiento' para unir esta tabla y la de equipamientos
     // El cascade internamente crea el objeto (persiste) para que cuando se añada un equipamiento al coche, este antes se cree en la bd
-    @ManyToMany(cascade = CascadeType.ALL)
+    @ManyToMany()
     @JoinTable(name = "coche_equipamiento",
             joinColumns = @JoinColumn(name = "coche_matricula"), // -> Nombre de la columna principal
             inverseJoinColumns = @JoinColumn(name = "equipamiento_id")) // Nombre de la columna de la inversa
     private List<Equipamiento> equipamientos;
 
     // La lista de reparaciones que puede tener un coche
-    @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL, mappedBy = "coche")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "coche")
     private List<Reparacion> reparaciones;
 
     // Creamos el constructor vacío
@@ -74,9 +74,13 @@ public class Coche {
         equipamiento.getCoches().add(this);
     }
 
-    public void removeEquipamiento(Equipamiento equipamiento) {
-        this.equipamientos.remove(equipamiento);
-        equipamiento.getCoches().remove(this);
+    /**
+     * CORRECTO
+     * Esta función va a calcular el precio del coche con los extras añadidos
+     * @return un double que representa el valor total
+     */
+    public double calcularPrecioTotal() {
+        return this.precioBase + this.equipamientos.stream().mapToDouble(Equipamiento::getCoste).sum();
     }
 
     public void addReparacion(Reparacion reparacion) {
