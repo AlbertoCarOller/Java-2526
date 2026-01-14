@@ -52,7 +52,6 @@ public class GestorService {
      *                         o con el EntityManager
      */
     public void cargarDatosPrueba() throws GestorException {
-        // TODO: preguntar si hacer o no las ventas en los datos de prueba
         EntityManager entityManager = null;
         try {
             entityManager = entityManagerFactory.createEntityManager();
@@ -652,12 +651,36 @@ public class GestorService {
             bw = new BufferedWriter(new FileWriter(prop.getProperty("costeActualCocheTXT")));
             // Comenzamos la transacción
             entityManager.getTransaction().begin();
-            //List<Double> total = entityManager.createQuery("select ")
-            //bw.write("Coste total actual del coche: " + calcularCosteActualCoche(coche) + "€");
+            /* En JPQL los join funcionan diferente, sin 'on' y pueden unir directamente poniendo el nombre del atributo
+             * con el cual se relaciona al objeto, aunque la unión ocurra por una lista, JPQL lo desempaqueta en un objeto
+             * por fila por lo que podemos acceder a los atributos, el coalesce() es como el ifnull() pero es más estándar en
+             * JPQL */
+//            List<Double> total = entityManager.createQuery("select v.precioFinal + coalesce(sum(r.coste), 0) + coalesce(sum(e.coste), 0) " +
+//                            "from Coche c " +
+//                            "inner join c.venta v " +
+//                            "left join c.reparaciones r " +
+//                            "left join c.equipamientos e " +
+//                            "where c.matricula = :matricula " +
+//                            "group by c.matricula, r.id, e.id", Double.class)
+//                    .setParameter("matricula", matriculaCoche).getResultList();
+            /* Ahora la consulta es completamente correcta, ya que se hacen sub-consultas independientes, resulta que antes
+             *al intentar encadenarlo en una sola consulta si un coche tenía 1 reparación y 2 equipamientos a pesar de hacer
+             * el group by esto provoca que haya grupos de diferentes combinaciones y al tener r1 y e1 y e2, las combinaciones
+             * eran dos por ejemplo r1 + e1 y r1 + e2, por lo que sumaba después los dos totales, el precio de r1 estaba duplicado  */
+            List<Double> total = entityManager.createQuery("select v.precioFinal + coalesce((select sum(e.coste) from Coche c " +
+                            "inner join c.equipamientos e where c.matricula = :matricula), 0) + coalesce((select sum(r.coste) from Coche c1 " +
+                            "inner join c1.reparaciones r where c1.matricula = :matricula), 0) from Venta v " +
+                            "where v.coche.matricula = :matricula", Double.class).setParameter("matricula", matriculaCoche.toUpperCase())
+                    .getResultList();
+            // Validamos que exista el coste actual del coche
+            if (validarExistencia(total)) {
+                throw new GestorException("No se puede calcular el coste actual");
+            }
+            bw.write("Coste total actual del coche: " + total.getFirst() + "€");
             // Cerramos la transacción
             entityManager.getTransaction().commit();
 
-        } catch (IOException | PersistenceException /*| GestorException*/ e) {
+        } catch (IOException | PersistenceException | GestorException e) {
             if (entityManager != null) {
                 entityManager.getTransaction().rollback();
             }
