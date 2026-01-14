@@ -15,7 +15,7 @@ public class ConfigLoader {
      * @throws IOException en caso de que haya algún problema al cargar los datos
      *                     o encontrar los archivos
      */
-    public static void cargarPropierties(Properties p) throws IOException {
+    public static void cargarProperties(Properties p) throws IOException {
         // Leemos el config.properties
         try (InputStreamReader leer = new InputStreamReader(new FileInputStream("src/main/resources/config.properties"))) {
             // Cargamos los datos del config.properties en el objeto Properties

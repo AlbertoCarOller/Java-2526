@@ -12,14 +12,11 @@ import util.EntityManagerController;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Properties;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class GestorService {
@@ -34,7 +31,7 @@ public class GestorService {
         // Inicializamos el properties
         prop = new Properties();
         // Cargamos los datos en el properties
-        ConfigLoader.cargarPropierties(prop);
+        ConfigLoader.cargarProperties(prop);
     }
 
     /* NOTA IMPORTANTE: he decidido no eliminar físicamente los coches, si son vendidos
