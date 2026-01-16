@@ -34,7 +34,7 @@ public class main {
             System.out.println("Mensaje desencriptado: " + mensajeDesencriptado);
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException |
                  BadPaddingException e) {
-            throw new RuntimeException(e);
+            System.out.println("Error: " + e.getMessage());
         } finally {
             // En caso de que no sea null entramos
             if (sc != null) {
