@@ -28,7 +28,9 @@ public class main {
             Cipher cipher = Cipher.getInstance("AES");
             // Llamamos a las funciones para de encriptación y desencriptación
             System.out.println("Introduce el mensaje a encriptar: ");
-            String mensajeEncriptado = encriptarMensaje(secretKey, cipher, sc.nextLine());
+            String mensajeOriginal = sc.nextLine();
+            System.out.println("Mensaje original: " + mensajeOriginal);
+            String mensajeEncriptado = encriptarMensaje(secretKey, cipher, mensajeOriginal);
             System.out.println("Mensaje encriptado: " + mensajeEncriptado);
             String mensajeDesencriptado = desencriptarMensaje(mensajeEncriptado, secretKey, cipher);
             System.out.println("Mensaje desencriptado: " + mensajeDesencriptado);
