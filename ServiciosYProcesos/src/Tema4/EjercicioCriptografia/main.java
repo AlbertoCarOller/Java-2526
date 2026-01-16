@@ -16,11 +16,15 @@ public class main {
              * que utiliza */
             KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
             /* Hemos generado una clave segura con la función generateKey() de la fábrica KeyGenerator,
-             * el objeto llave es SecretKey, utilizará el cifrado 'AES' */
+             * el objeto llave es SecretKey, utilizará el cifrado 'AES', se utiliza porque es la más fiable
+             * al no mostrar debilidades durante muchos años de investigación, aparte a diferencia de otros
+             * encriptadores que encriptaba la mitad de los bytes y la otra mitad cuando terminaba con estos, este
+             * encrypta todos los bytes al 100% */
             SecretKey secretKey = keyGenerator.generateKey();
             /* Creamos la clase Cipher que es la encargada de encriptar la llave SecretKey,
              * obtenemos una instancia de Cipher con el tipo de cifrado para encriptar,
-             * como estamos con encriptación simétrica la clave es compartida */
+             * como estamos con encriptación simétrica la clave es compartida, esto quiere
+             * decir que se utiliza la misma clave tanto al encriptar como al desencriptar */
             Cipher cipher = Cipher.getInstance("AES");
             // Llamamos a las funciones para de encriptación y desencriptación
             System.out.println("Introduce el mensaje a encriptar: ");
@@ -31,6 +35,12 @@ public class main {
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException |
                  BadPaddingException e) {
             throw new RuntimeException(e);
+        } finally {
+            // En caso de que no sea null entramos
+            if (sc != null) {
+                // Cerramos el Scanner
+                sc.close();
+            }
         }
     }
 
