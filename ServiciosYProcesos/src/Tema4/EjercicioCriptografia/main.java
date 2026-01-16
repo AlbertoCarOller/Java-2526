@@ -8,6 +8,7 @@ import java.util.Scanner;
 
 public class main {
     static Scanner sc = new Scanner(System.in);
+
     public static void main(String[] args) {
         try {
             /* KeyGenerator -> Esta clase es un generador de claves encriptadas,
@@ -18,7 +19,8 @@ public class main {
              * el objeto llave es SecretKey, utilizará el cifrado 'AES' */
             SecretKey secretKey = keyGenerator.generateKey();
             /* Creamos la clase Cipher que es la encargada de encriptar la llave SecretKey,
-             * obtenemos una instancia de Cipher con el tipo de cifrado para encriptar */
+             * obtenemos una instancia de Cipher con el tipo de cifrado para encriptar,
+             * como estamos con encriptación simétrica la clave es compartida */
             Cipher cipher = Cipher.getInstance("AES");
             // Llamamos a las funciones para de encriptación y desencriptación
             System.out.println("Introduce el mensaje a encriptar: ");
