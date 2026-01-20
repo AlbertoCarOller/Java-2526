@@ -18,6 +18,7 @@ public class Propietario {
     @OneToMany(mappedBy = "propietario", cascade = CascadeType.ALL)
     private List<Venta> ventas;
 
+    // mappedBy -> Es el que dá el contrato, no es el dueño de la relación
     @OneToMany(mappedBy = "propietario")
     private List<Coche> coches;
 

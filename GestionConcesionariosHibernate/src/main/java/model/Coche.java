@@ -16,6 +16,7 @@ import java.util.Objects;
 public class Coche {
     // El id, la primary key de la tabla va a see la matrícula
     @Id
+    @Column(length = 20)
     private String matricula;
     private String marca;
     private String modelo;
@@ -26,7 +27,7 @@ public class Coche {
     private Concesionario concesionario;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    // JoinColumn -> Es el que recibe el parámetro, no manda, manda el contrario, que debe tener el mappedBy
+    // JoinColumn -> Es el dueño, es el que recibe el contrato la FK, es el dueño del contrato
     @JoinColumn(name = "propietario_id")
     private Propietario propietario;
 
