@@ -12,7 +12,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+// Le dice a sping que hay un controller y debe gestionarlo con llamadas HTTP
 @RestController
+// URL que lleva al lugar concreto
 @RequestMapping("/api/v1/productos")
 @Tag(name = "Productos", description = "API de gestión de inventario")
 public class ProductoController {
@@ -21,11 +23,13 @@ public class ProductoController {
     private ProductoService service;
 
     @GetMapping
+    // @Operation -> Para la documentación de la función/endpoint
     @Operation(summary = "Listar todos", description = "Devuelve el listado completo de productos")
     public ResponseEntity<List<Producto>> listar() {
         return ResponseEntity.ok(service.listarTodos());
     }
 
+    // Placeholder, se le pasa un argumento, en este caso un id
     @GetMapping("/{id}")
     @Operation(summary = "Buscar por ID", description = "Devuelve un producto específico o 404 si no existe")
     public ResponseEntity<Producto> obtenerPorId(@PathVariable Long id) {

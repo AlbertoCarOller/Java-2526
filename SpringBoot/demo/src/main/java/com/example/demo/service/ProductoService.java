@@ -36,6 +36,7 @@ public class ProductoService {
         if (producto.getStock() == null) {
             producto.setStock(0);
         }
+        // save() -> para guardar en la base de datos
         return repositorio.save(producto);
     }
 
