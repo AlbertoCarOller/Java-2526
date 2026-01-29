@@ -1,5 +1,6 @@
 package com.example.GestionTiendaREST.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -17,7 +18,7 @@ public class Videojuego {
     private Long id; // Creamos el id de cada videojuego (PK) se crea de forma auto-generada
     /* El campo 'título' no podrá ser null y tendrá una longitud máxima de 150 caractéres, de
      * esta forma tiene sentido que no puede haber un videojuego sin título */
-    @Column(nullable = false, length = 150)
+    @Column(nullable = false, length = 150, unique = true)
     private String titulo;
     // El género tampoco puede ser null y le ponemos una longitud máxima de 50
     @Column(nullable = false, length = 50)
@@ -30,7 +31,9 @@ public class Videojuego {
     private int stock;
     // La relación de un videojuego tiene muchas ventas
     @OneToMany(mappedBy = "videojuego")
+    @JsonIgnore /* @JsonIgnore -> Añadimos esta anotación para que al crear el JSON de la venta ignore
+     la lista de ventas, pa que no se llame así misma creando un bucle infinito */
     private List<Venta> ventas;
-}
 
-// AQUÍ DEBERÍAN DE ESTAR LOS GETTERS Y SETTERS AL IGUAL QUE LOS CONSTRUCTORES SI NO UTILIZAREMOS 'LOMBOK'
+    // AQUÍ DEBERÍAN DE ESTAR LOS GETTERS Y SETTERS AL IGUAL QUE LOS CONSTRUCTORES SI NO UTILIZAREMOS 'LOMBOK'
+}

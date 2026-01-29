@@ -1,20 +1,20 @@
 package com.example.GestionTiendaREST.service;
 
 import com.example.GestionTiendaREST.models.Cliente;
+import com.example.GestionTiendaREST.models.CompraDTO;
+import com.example.GestionTiendaREST.models.Venta;
 import com.example.GestionTiendaREST.models.Videojuego;
 import com.example.GestionTiendaREST.repository.ClienteRepository;
 import com.example.GestionTiendaREST.repository.VentaRepository;
 import com.example.GestionTiendaREST.repository.VideojuegoRepository;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -26,6 +26,12 @@ import java.util.Optional;
 
 /* SOLUCIÓN PARA EL AVISO DE LAS ETIQUETAS @Autowired crear el
  constructor aceptando los repositorios y quitar la etiqueta */
+
+/* NOTA IMPORTANTE: la etiqueta @Transactional hace que se tenga el contexto los cambios y demás
+ * que ocurra dentro de una función, los objetos/entidades pasan a ser Management por ejemplo al
+ * hacer un findBy() sin la etiqueta no habría contexto, solo al hacer save() o delete(), pero no
+ * en toda la función */
+
 @Service
 public class TiendaService {
     // Esta clase debe implementar los repositorios de los diferentes objetos con los que trabaja
@@ -103,12 +109,29 @@ public class TiendaService {
     /**
      * Esta función va a guardar un videojuego pasado por parámetros
      * en la base de datos comprobando si el stock y el precio son
-     * correctos
+     * correctos, aparte de que el videojuego no exista ya por el nombre
+     * y por el id, CUIDADO CON ESTO PORQUE SI HACEMOS UN save() con el mismo
+     * id hará un update
      *
      * @param videojuego el videojuego a crear
      * @return el videojuego creado
      */
     public Videojuego guardarVideojuego(Videojuego videojuego) {
+        // Comprobamos si el videojuego existe (por id y/o por nombre)
+        listarVideojuegos().forEach(v -> {
+            // Si el id es distinto de null comprobamos que no esté repetido repetido
+            if (videojuego.getId() != null) {
+                if (videojuego.getId().equals(v.getId())) {
+                    throw new ResponseStatusException(HttpStatus.CONFLICT, "El videojuego ya existe");
+                }
+                /* Si no comprobamos que el título no exista ya, ES UNA APRECIACIÓN QUE HE TENIDO EN
+                 CUENTA, NO DEBERÍA DE HABER DOS VIDEOJUEGOS QUE SE LLAMEN IGUAL */
+            } else {
+                if (videojuego.getTitulo().equals(v.getTitulo())) {
+                    throw new ResponseStatusException(HttpStatus.CONFLICT, "El videojuego ya existe");
+                }
+            }
+        });
         // Validamos si precio es menor a 0 o si el stock es menor a 0
         if (videojuego.getPrecio() < 0 || videojuego.getStock() < 0) {
             /* En caso de que entre, lanzamos ResponseStatusException, esta
@@ -138,6 +161,54 @@ public class TiendaService {
         // Copiamos los datos nuevos en el original, ignorando copiar los campos señalados, gracias a BeanUtils.copyProperties()
         BeanUtils.copyProperties(datosNuevos, videojuegoOriginal, "id", "titulo", "genero", "ventas");
         // Guardamos el videojuego actualizado, cuando hacemos save() si el id coincide, se sustituye el nuevo por el viejo (entidad)
-        return guardarVideojuego(videojuegoOriginal);
+        return videojuegoRepository.save(videojuegoOriginal);
+    }
+
+    /**
+     * Esta función va a eliminar un videojuego de la base de datos
+     * en caso de que exista y que no tenga ninguna venta asociada
+     *
+     * @param id el id del videojuego a eliminar
+     */
+    public void borrarVideojuego(Long id) {
+        // Primero obtenemos el videojuego en caso de que exista
+        Videojuego videojuego = obtenerVideojuegoPorId(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No existe el videojuego"));
+        // En caso de que el videojuego haya sido vendido, lanzamos un 409 (CONFLICT)
+        if (!videojuego.getVentas().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Un videojuego vendido no se puede borrar");
+        }
+        // En caso de que no haya error, se borra con delete()
+        videojuegoRepository.delete(videojuego);
+    }
+
+    @Transactional
+    // Se hacen todas las acciones o ninguna, aparte de esta forma al hacer los sets se cambia en la base de datos
+    public Venta comprarVideojuego(CompraDTO compraDTO) {
+        // Comprobamos que exista el cliente y el videojuego por su id
+        Cliente cliente = clienteRepository.findById(compraDTO.getIdCliente())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No existe el cliente"));
+        Videojuego videojuego = obtenerVideojuegoPorId(compraDTO.getIdVideojuego())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No existe el videojuego"));
+        // Comprobamos que el stock del videojuego sea igual a 0, devolvemos 400 en caso de que así sea
+        if (videojuego.getStock() == 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El stock del videojuego no puede ser menor a 0");
+        }
+        // Comprobamos que el saldo del cliente sea menor al precio del videojuego, entonces devolvemos 400
+        if (cliente.getSaldo() < videojuego.getPrecio()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El saldo del cliente es insuficiente");
+        }
+        // Restamos el precio del videojuego al saldo del cliente
+        cliente.setSaldo(cliente.getSaldo() - videojuego.getPrecio());
+        // Restamos una unidad de stock al videojuego
+        videojuego.setStock(videojuego.getStock() - 1);
+        // Ahora generamos la venta
+        Venta venta = new Venta(null, LocalDate.now(), videojuego.getPrecio(), cliente, videojuego);
+        // Guardamos la venta
+        ventaRepository.save(venta);
+        // Le asignamos la venta al videojuego y cliente
+        videojuego.getVentas().add(venta);
+        cliente.getVentas().add(venta);
+        return venta;
     }
 }

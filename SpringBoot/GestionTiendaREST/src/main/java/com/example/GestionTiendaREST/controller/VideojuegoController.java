@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RestController
-@RequestMapping("/api/videojuegos") // URL que representa el recurso
+@RestController // Marca la clase como el controller, aquí se hacen los endpoints
+@RequestMapping("/videojuegos") // URL que representa el recurso
 @Tag(name = "Videojuegos", description = "Diferentes funciones para tratar los videojuegos")
 public class VideojuegoController {
 
@@ -61,6 +61,13 @@ public class VideojuegoController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    /**
+     * Esta función va a crear un videojuego en caso de que este
+     * no se haya creado ya
+     *
+     * @param videojuego el cuerpo JSON del videojuego (editable)
+     * @return el videojuego creado
+     */
     @PostMapping // Se hace un post porque se va a crear un registro
     @Operation(summary = "Crear videojuego",
             description = "Crea y devuelve el videojuego creado")
@@ -71,9 +78,35 @@ public class VideojuegoController {
         return new ResponseEntity<>(tiendaService.guardarVideojuego(videojuego), HttpStatus.CREATED);
     }
 
+    /**
+     * Esta función va a actualizar un videojuego en caso
+     * de que exista, se podrá actualizar el stock y/o el precio
+     *
+     * @param id          el id del videojuego a actualizar
+     * @param datosNuevos el cuerpo JSON del videojuego (editable)
+     * @return el videojuego actualizado
+     */
     @PutMapping("/{id}") // Se hace un put porque se van a actualizar datos, le pasamos el id del videojuego
+    @Operation(summary = "Actualizar videojuego", description = "Actualiza y devuelve el videojuego actualizado")
     public ResponseEntity<Videojuego> actualizarVideojuego(@PathVariable Long id, @RequestBody Videojuego datosNuevos) {
         // Llamamos a la función para el guardado devolviendo así el ResponseEntity con el código 200 en caso de que vaya bien
         return ResponseEntity.ok(tiendaService.actualizarVideojuego(id, datosNuevos));
+    }
+
+    /**
+     * Esta función va a eliminar un videojuego en caso de que exista,
+     * devolviendo el código 200 en caso de que no haya problemas
+     *
+     * @param id el id del videojuego a eliminar
+     * @return la respuesta con el código 200 en caso de que salga bien
+     */
+    @DeleteMapping("/{id}") // Se hace Delete porque se elimina un videojuego
+    @Operation(summary = "Eliminar videojuego",
+            description = "Se elimina un videojuego por su id en caso de que no haya sido vendido")
+    public ResponseEntity<Void> eliminarVideojuego(@PathVariable Long id) {
+        // Borramos el videojuego
+        tiendaService.borrarVideojuego(id);
+        // Devolvemos el código 200 en caso de que se haya borrado sin problemas
+        return ResponseEntity.ok().build();
     }
 }
