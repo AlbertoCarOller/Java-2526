@@ -207,4 +207,58 @@ public class TiendaService {
         cliente.getVentas().add(venta);
         return venta;
     }
+
+    /**
+     * Esta función va a devolver los videojuegos
+     * del género pasado por parámetros
+     *
+     * @param genero el género de los videojuegos a buscar
+     * @return una lista con los videojuegos de ese género
+     */
+    public List<Videojuego> obtenerVideojuegoPorGenero(String genero) {
+        // Obtenemos una lista de videojuegos con ese género
+        List<Videojuego> videojuegos = videojuegoRepository.findByGenero(genero);
+        // En caso de que la lista esté vacía, lanzamos un 404
+        if (videojuegos.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No hay videojuegos con el género " + genero);
+        }
+        return videojuegos;
+    }
+
+    /**
+     * Esta función va a devolver una lista de videojuegos
+     * con un precio menor al pasado por parámetros
+     *
+     * @param precioLimite el número límite excluyente del precio
+     * @return la lista de videojuegos con un precio menor al indicado
+     */
+    public List<Videojuego> obtenerVideojuegosRangoPrecio(double precioLimite) {
+        if (precioLimite < 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El precio máximo no puede ser menor a 0");
+        }
+        // Obtenemos la lista de videojuegos con un precio menor al precioLimite
+        List<Videojuego> videojuegos = videojuegoRepository.findVideojuegoByPrecioLessThan(precioLimite);
+        if (videojuegos.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se han encontrado videojuegos con un precio menor a " + precioLimite);
+        }
+        return videojuegos;
+    }
+
+    /**
+     * Esta función va a devolver una lista de ventas
+     * de un cliente concreto, en caso de que tenga ventas
+     * o el id del cliente exista
+     *
+     * @param idCliente el id del cliente con dichas ventas
+     * @return la lista de ventas del cliente con el id pasado por parámetros
+     */
+    public List<Venta> obtenerVentasPorIdCliente(long idCliente) {
+        // Obtenemos la lista de ventas
+        List<Venta> ventas = ventaRepository.findAllByClienteId(idCliente);
+        // En caso de que la lista esté vacía, lanzamos un 404
+        if (ventas.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se han encontrado ventas del cliente con id " + idCliente);
+        }
+        return ventas;
+    }
 }

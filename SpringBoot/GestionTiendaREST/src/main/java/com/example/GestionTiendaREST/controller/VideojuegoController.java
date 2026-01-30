@@ -109,4 +109,36 @@ public class VideojuegoController {
         // Devolvemos el código 200 en caso de que se haya borrado sin problemas
         return ResponseEntity.ok().build();
     }
+
+    /**
+     * Esta función va a devolver una lista de todos los videojuegos
+     * del género pasado por parámetros
+     *
+     * @param genero el género de los videojuegos a buscar
+     * @return la lista de videojuegos con dicho género
+     */
+    @GetMapping("/genero/{genero}")
+    @Operation(summary = "Lista de videojuegos por género",
+            description = "Devuelve una lista de los videojuegos de dicho género")
+    public ResponseEntity<List<Videojuego>> obtenerVideojuegoPorGenero(@PathVariable String genero) {
+        // Devolvemos la lista de videojuegos
+        return ResponseEntity.ok(tiendaService.obtenerVideojuegoPorGenero(genero));
+    }
+
+    /**
+     * Esta función va a devolver una lista con todos los videojuegos con un precio
+     * menor al precio límite pasado por parámetros
+     *
+     * @param precioMax el precio límite (excluyente)
+     * @return el JSON con la lista de videojuegos y el 200 en caso de que salga bien
+     */
+    @GetMapping("/oferta")
+    @Operation(summary = "Obtener videojuegos con precio menor al máximo",
+            description = "Devuelve una lista de videojuegos con precio menor al máximo indicado")
+    /* @RequestParam -> De esta forma no se le pasa como parte de la URL la variable, si no como parámetro de la misma (?precioLimite=),
+     * @PathVariable -> a esta, en cambio, hay que pasarle la variable en la URL */
+    public ResponseEntity<List<Videojuego>> obtenerVideojuegosPorPrecioLimite(@RequestParam double precioMax) {
+        // Devolvemos el JSON con la lista de videojuegos
+        return ResponseEntity.ok(tiendaService.obtenerVideojuegosRangoPrecio(precioMax));
+    }
 }
