@@ -117,21 +117,17 @@ public class TiendaService {
      * @return el videojuego creado
      */
     public Videojuego guardarVideojuego(Videojuego videojuego) {
-        // Comprobamos si el videojuego existe (por id y/o por nombre)
-        listarVideojuegos().forEach(v -> {
-            // Si el id es distinto de null comprobamos que no esté repetido repetido
-            if (videojuego.getId() != null) {
-                if (videojuego.getId().equals(v.getId())) {
-                    throw new ResponseStatusException(HttpStatus.CONFLICT, "El videojuego ya existe");
-                }
-                /* Si no comprobamos que el título no exista ya, ES UNA APRECIACIÓN QUE HE TENIDO EN
-                 CUENTA, NO DEBERÍA DE HABER DOS VIDEOJUEGOS QUE SE LLAMEN IGUAL */
-            } else {
-                if (videojuego.getTitulo().equals(v.getTitulo())) {
-                    throw new ResponseStatusException(HttpStatus.CONFLICT, "El videojuego ya existe");
-                }
+        // Comprobamos que tenga id
+        if (videojuego.getId() != null) {
+            // Comprobamos si existe el videojuego por el id
+            if (obtenerVideojuegoPorId(videojuego.getId()).orElse(null) != null) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "El videojuego ya existe (mismo id)");
             }
-        });
+        }
+        // Comprobamos si existe un videojuego con este título
+        if (videojuegoRepository.existsByTitulo(videojuego.getTitulo())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Ya existe un videojuego con el mismo título");
+        }
         // Validamos si precio es menor a 0 o si el stock es menor a 0
         if (videojuego.getPrecio() < 0 || videojuego.getStock() < 0) {
             /* En caso de que entre, lanzamos ResponseStatusException, esta

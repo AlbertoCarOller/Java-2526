@@ -13,4 +13,12 @@ import org.springframework.stereotype.Repository;
  sabe que es un long */
 @Repository
 public interface VideojuegoRepository extends JpaRepository<Videojuego, Long> {
+    /**
+     * Esta función gracias a las palabras claves
+     * de Spring busca un videojuego por su título
+     *
+     * @param titulo el título del videojuego
+     * @return un boolean para saber si existe o no
+     */
+    boolean existsByTitulo(String titulo);
 }
