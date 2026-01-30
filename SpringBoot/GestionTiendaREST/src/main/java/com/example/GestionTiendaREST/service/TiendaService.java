@@ -154,6 +154,14 @@ public class TiendaService {
         Videojuego videojuegoOriginal = obtenerVideojuegoPorId(id)
                 // En caso de que no exista lanzamos excepción 404
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No existe el videojuego"));
+        // Validamos si precio es menor a 0 o si el stock es menor a 0
+        if (datosNuevos.getPrecio() < 0 || datosNuevos.getStock() < 0) {
+            /* En caso de que entre, lanzamos ResponseStatusException, esta
+             * nos permite lanzar una excepción con el código http que le digamos
+             * con un mensaje personalizado viene ya controlada de por sí por Spring,
+             * este devuelve un JSON detallado del error */
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El precio y/o el stock no son correctos");
+        }
         // Copiamos los datos nuevos en el original, ignorando copiar los campos señalados, gracias a BeanUtils.copyProperties()
         BeanUtils.copyProperties(datosNuevos, videojuegoOriginal, "id", "titulo", "genero", "ventas");
         // Guardamos el videojuego actualizado, cuando hacemos save() si el id coincide, se sustituye el nuevo por el viejo (entidad)
