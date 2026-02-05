@@ -16,7 +16,7 @@ public class Main {
             System.out.println("✅ Conexión establecida con MongoDB.");
         } catch (IOException | MongoException e) {
             System.err.println("❌ Error CRÍTICO al conectar con la base de datos: " + e.getMessage());
-            // Si no hay conexión, terminamos el programa porque no podemos hacer nada
+            // Si no hay conexión, terminamos el programa porque no podemos hacer nada (Evita tener que inicializar a null el gestor)
             return;
         }
 
