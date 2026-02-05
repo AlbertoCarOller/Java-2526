@@ -49,6 +49,8 @@ public class Main {
             } catch (NumberFormatException e) {
                 // Si el usuario escribe letras en vez de números
                 System.err.println("❌ Error: Debes introducir un número.");
+            } catch (MongoException e) {
+                System.err.println("❌ Error: " + e.getMessage());
             } catch (Exception e) {
                 // 🛡️ AQUÍ ESTÁ LA CLAVE: Atrapamos cualquier error de Mongo o lógica
                 // Mostramos el error, pero NO hacemos 'return' ni 'break', 
