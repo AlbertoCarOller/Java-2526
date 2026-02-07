@@ -12,7 +12,7 @@ import java.io.IOException;
 // Esta clase se va a encargar de crear la base de datos y sus collections (Tablas)
 public class SchemaController {
     // Creamos el mongo cliente (necesario para poder trabajar con la base de datos, obtenemos la conexión con mongo)
-    private final MongoClient mongoClient;
+    public final MongoClient mongoClient;
 
     public SchemaController() throws IOException {
         // Cargamos el mongoClient
@@ -62,13 +62,5 @@ public class SchemaController {
      */
     public MongoCollection<Document> obtenerTablaVentas() {
         return obtenerMongoDatabase().getCollection("ventas");
-    }
-
-    /**
-     * Esta función va a cerrar la conexión con
-     * el cliente mongo
-     */
-    public void cerrarConexion() {
-        mongoClient.close();
     }
 }
