@@ -46,8 +46,6 @@ public class GestorTienda {
                 .append("genero", "Rol").append("precio", 7.82).append("stock", 2), new Document("titulo", "Fallout 76")
                 .append("genero", "Rol").append("precio", 39.99).append("stock", 20), new Document("titulo", "Fallout Shelter")
                 .append("genero", "Gestion").append("precio", 0.8).append("stock", 10)));
-        // Se crea la collection (tabla) de ventas
-        schemaController.obtenerTablaVentas();
     }
 
     /**
