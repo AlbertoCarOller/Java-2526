@@ -9,7 +9,7 @@ import java.util.Scanner;
 
 public class ClienteChat {
 
-    static void main() {
+    public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
         // Siempre se conectará al socket, el cuál es nuevo, no puede ser el mismo porque se cierra
         /*while (true) {*/
@@ -28,16 +28,21 @@ public class ClienteChat {
             escuchador.start();
             // Hacemos el while dentro para no crear nuevas llamadas (socket)
             boolean fin = false;
-            System.out.println("Introduce tu nombre");
+
+            System.out.println("Introduce tu nombre de jugador:");
             out.println(sc.nextLine());
+
             while (!fin) {
-                System.out.println("Escribe el mensaje a enviar (fin para terminar):");
+                System.out.println("Introduce tu número (o 'fin' para salir):");
                 String mensajeAEnviar = sc.nextLine();
+
                 if (mensajeAEnviar != null) {
                     if (mensajeAEnviar.equalsIgnoreCase("fin")) {
                         System.out.println("Se cerró la conexión");
                         fin = true;
+                        out.println("fin");
                     } else {
+                        // Enviamos el número como String
                         out.println(mensajeAEnviar);
                     }
                 }

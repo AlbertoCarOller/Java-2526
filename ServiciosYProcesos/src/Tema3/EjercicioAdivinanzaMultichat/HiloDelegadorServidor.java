@@ -15,9 +15,16 @@ public class HiloDelegadorServidor extends Thread {
     // Creamos el pw aquí arriba
     PrintWriter out;
 
+    // Objeto compartido de la partida
+    Partida partida;
+    // Contador de intentos
+    int intentos;
+
     // Creamos el constructor
-    public HiloDelegadorServidor(Socket socket) {
+    public HiloDelegadorServidor(Socket socket, Partida partida) {
         this.socket = socket;
+        this.partida = partida;
+        this.intentos = 0;
         sc = new Scanner(System.in);
         this.nombreUsuario = "";
         this.fin = false;
@@ -35,10 +42,12 @@ public class HiloDelegadorServidor extends Thread {
             out = new PrintWriter(socket.getOutputStream(), true);
             System.out.println("Esperando a que introduzca el nombre el usuario...");
             this.nombreUsuario = br.readLine();
+
             // Hacemos esto para que no se cierre el socket de la llamada, ya que se cierra en el try
-            while (!fin) {
+            while (!fin && !partida.esFinalizado() && intentos < 5) {
                 // Leemos la línea, lo que nos llega del cliente
                 String msg = br.readLine();
+
                 // En caso de que el usuario que ha enviado el mensaje haya escrito fin, se termina la conversación
                 if (msg != null) {
                     if (msg.equalsIgnoreCase("fin")) {
@@ -46,12 +55,38 @@ public class HiloDelegadorServidor extends Thread {
                         System.out.println(nombreUsuario + " cerró la conversación con el servidor");
                     } else {
                         // En caso de que no sea el fin de la conversación mostramos el mensaje y permitimos enviar mensaje
-                        System.out.println("Mensaje recibido: " + msg);
-                        // Una vez recibido el mensaje contestamos con el printWritter
-                        //System.out.println("Escribe el mensaje (fin para terminar) " + nombreUsuario + ":");
-                        //String mensajeAEnviar = sc.nextLine();
-                        // Este escribe a los receptores, al resto de hilos, el mensaje recibido del cliente
-                        ServidorChat.listaHilos.forEach(h -> h.enviarMensajes(nombreUsuario + ": " + msg));
+                        System.out.println("Intento recibido de " + nombreUsuario + ": " + msg);
+
+                        try {
+                            int numero = Integer.parseInt(msg);
+                            intentos++;
+
+                            // Comprobamos el mensaje si ha acertado el usuario
+                            String resultado = partida.comprobarIntento(numero, nombreUsuario);
+
+                            // Una vez recibido el mensaje contestamos con el printWritter
+                            // En caso de que el resultado sea correcto
+                            if (resultado.equals("Correcto")) {
+                                out.println("Has ganado,  el número es: " + numero);
+                                fin = true;
+                            } else if (resultado.equals("JuegoTerminado")) {
+                                out.println("El juego ha terminado");
+                                fin = true;
+                            } else if (resultado.equals("Mayor")) {
+                                out.println("El número secreto es mayor. Intentos: " + intentos + "/5");
+                            } else if (resultado.equals("Menor")) {
+                                out.println("El número secreto es menor. Intentos: " + intentos + "/5");
+                            }
+
+                            // En caso de que el número de intentos sea mayor o igual a 5 y no haya terminado ya termina de jugar
+                            if (intentos >= 5 && !fin) {
+                                out.println("Has agotado los intentos");
+                                fin = true;
+                            }
+
+                        } catch (NumberFormatException e) {
+                            out.println("Error: " + e.getMessage());
+                        }
                     }
                 } else {
                     fin = true;
@@ -61,14 +96,5 @@ public class HiloDelegadorServidor extends Thread {
         } catch (IOException e) {
             System.err.println("Error: " + e.getMessage());
         }
-    }
-
-    /**
-     * Esta función va a enviar el mensaje al cliente
-     *
-     * @param mensaje el mensaje a enviar
-     */
-    public void enviarMensajes(String mensaje) {
-        out.println(mensaje);
     }
 }
